@@ -19,6 +19,10 @@ app.use(json());
 // api route
 app.use(routes);
 
+app.get("/docs/swagger.json", (_, res) =>
+  res.sendFile("/swagger-output.json", { root: "." })
+);
+
 // docs route
 app.use("/docs", redoc(REDOC_CONFIG));
 
@@ -31,9 +35,7 @@ app.use((err, req, res, __) => {
   const status = err.status || 500;
   const message = err.message;
   logger.info(
-    `[${req.method}][${res.locals.user?.uEmail || getRemoteAddress(req)}][${
-      req.url
-    }] ${status}: ${message}`
+    `[${req.method}][${res.locals.user?.uEmail}][${req.url}] ${status}: ${message}`
   );
   res.status(status).json({ message: message });
 });

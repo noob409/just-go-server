@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "dev": "nodemon src/server.js",
     "start": "pm2 delete ecosystem.config.cjs & pm2 restart ecosystem.config.cjs",
     "start:prod": "pm2 delete ecosystem.config.prod.cjs & pm2 restart ecosystem.config.prod.cjs",
     "monit": "pm2 monit",

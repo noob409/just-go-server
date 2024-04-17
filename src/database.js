@@ -2,6 +2,7 @@ import { readdirSync } from "fs";
 
 import sequelize from "./config/sequelize.js";
 import logger from "./logger.js";
+import { delay } from "./utils/utils.js";
 
 const db = {
   sequelize,

@@ -1,4 +1,7 @@
 import { OAuth2Client } from "google-auth-library";
+import { config } from "dotenv";
+
+config();
 
 export const oauth = async (req, res) => {
   const authCode = req.body.authCode; // Assuming authCode is sent in the request body

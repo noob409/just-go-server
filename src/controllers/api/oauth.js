@@ -9,7 +9,8 @@ export const oauth = async (req, res) => {
   const oauth2Client = new OAuth2Client({
       clientId: '放你的ClientID',
       clientSecret: '放你的密鑰',
-      redirectUri: '放你要導向的uri'
+      //  If you pass the authCode to backend from frontend, then you should use 'postmessage' in redirectUri, this is even not mentioned in Google Docs!
+      redirectUri: 'postmessage'
   });
 
   try {
@@ -30,6 +31,7 @@ export const oauth = async (req, res) => {
               avatar: userInfo.picture,
               email: userInfo.email,
               emailVerified: userInfo.email_verified,
+              redirectUri: process.env.REDIRECT_URI,
           };
 
           res.status(200).json(user);

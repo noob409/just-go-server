@@ -1,6 +1,7 @@
 # Just Go
 
-description here...
+`server.js` 請註解掉9-16行.
+`before npm run dev` 請先創造一個logs folder.
 
 ## Installation
 

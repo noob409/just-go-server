@@ -6,9 +6,9 @@ import jwt from 'jsonwebtoken';
 
 config();
 
-// avatar資料還未定義(formData)
+// avatar資料還未定義(formData)，Token expired還未實作
 
-// For encrypt password
+// For encrypt password rounds
 const saltRounds = 10;
 
 const findOrCreateUser = async (userPara, isGoogle) => {
@@ -26,6 +26,7 @@ const findOrCreateUser = async (userPara, isGoogle) => {
                     email: userPara.email,
                     password: null,
                     token: null,
+                    avatar: null,   //  暫時先null
                     provider: "google"
                 },
             });
@@ -43,9 +44,10 @@ const findOrCreateUser = async (userPara, isGoogle) => {
             }
 
             const user = {
-                id: userInfo.id,
-                username: userInfo.username,
+                uuid: userInfo.id,
+                name: userInfo.username,
                 email: userInfo.email,
+                avatar: null    //  暫時先null
             }
             return { user, token };
 
@@ -69,6 +71,7 @@ const findOrCreateUser = async (userPara, isGoogle) => {
                     email: userPara.email,
                     password: hashedPassword,
                     token: null,
+                    avatar: null,   //  暫時先null
                     provider: "form"
                 },
             });
@@ -83,9 +86,10 @@ const findOrCreateUser = async (userPara, isGoogle) => {
                 console.log('新用戶已註冊:', userInfo);
 
                 const user = {
-                    id: userInfo.id,
-                    username: userInfo.username,
+                    uuid: userInfo.id,
+                    name: userInfo.username,
                     email: userInfo.email,
+                    avatar: null    //  暫時先null
                 }
                 return { user, token };
             } else {
@@ -99,10 +103,9 @@ const findOrCreateUser = async (userPara, isGoogle) => {
 
 const generateToken = (user) => {
     const payload = {
-        id: user.id,
-        email: user.email,
+        userId: user.id,
     }
-    const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '30d' });
+    const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '60d' });
     return token;
 }
 
@@ -158,9 +161,10 @@ export const loginUser = async (email, password) => {
             await userInfo.save();
 
             const user = {
-                id: userInfo.id,
-                username: userInfo.username,
+                uuid: userInfo.id,
+                name: userInfo.username,
                 email: userInfo.email,
+                avatar: null    //  暫時先null
             }
             return { user, token };
         }

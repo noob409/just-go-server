@@ -13,6 +13,29 @@ const Board = sequelize.define("board", {
     type: DataTypes.STRING,
     allowNull: false,
   },
+  image: {
+    type: DataTypes.STRING,
+  },
+  update: {
+    type: DataTypes.DATE,
+  },
+  label: {
+    // VARCHAR(255)[]
+    type: DataTypes.ARRAY(DataTypes.STRING),
+  },
+  like: {
+    type: DataTypes.INTEGER,
+  },
+  likeByMe: {
+    type: DataTypes.BOOLEAN,
+  },
+  isShare: {
+    type: DataTypes.BOOLEAN,
+  },
+  deletable: {
+    type: DataTypes.BOOLEAN,
+    allowNull: false,
+  }
 }, {
   freezeTableName: true,
 });

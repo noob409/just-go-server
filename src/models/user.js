@@ -15,20 +15,22 @@ const User = sequelize.define("user", {
   },
   email: {
     type: DataTypes.STRING,
+    allowNull: false,
   },
   password: {
     type: DataTypes.STRING,
-    allowNull: true, //  At test, we set this one true.
   },
   token: {
     type: DataTypes.STRING,
+    // allowNull: false,  //  At Test, We set this null
     unique: true,
   },
-  // avatar: {
-
-  // },
+  avatar: {
+    type: DataTypes.STRING,
+  },
   provider: { //  存google或form
     type: DataTypes.STRING,
+    allowNull: false,
   }
 }, {
   freezeTableName: true,   // Prohibit plural

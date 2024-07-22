@@ -12,12 +12,26 @@ const User = sequelize.define("user", {
   username: {
     type: DataTypes.STRING,
     allowNull: false,
-    unique: true,
+  },
+  email: {
+    type: DataTypes.STRING,
   },
   password: {
     type: DataTypes.STRING,
-    allowNull: false,
+    allowNull: true, //  At test, we set this one true.
   },
+  token: {
+    type: DataTypes.STRING,
+    unique: true,
+  },
+  // avatar: {
+
+  // },
+  provider: { //  存google或form
+    type: DataTypes.STRING,
+  }
+}, {
+  freezeTableName: true,   // Prohibit plural
 });
 
 export const associate = () => {

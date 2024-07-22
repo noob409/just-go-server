@@ -1,12 +1,15 @@
+// src/routes/api/index.js
+
 import { Router } from "express";
 
 import { testController } from "../../controllers/api/test.controller.js";
-import { oauth } from "../../controllers/api/oauth.js"
-
+import AuthRouter from "./auth.routes.js";
 const APIRouter = Router();
 
 APIRouter.post("/test", testController);
 
-APIRouter.post("/googleoauth", oauth);
+APIRouter.use("/auth", AuthRouter);
+
+// APIRouter.use("/trip", TestRouter);
 
 export default APIRouter;

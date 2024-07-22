@@ -13,6 +13,8 @@ const Board = sequelize.define("board", {
     type: DataTypes.STRING,
     allowNull: false,
   },
+}, {
+  freezeTableName: true,
 });
 
 export const associate = () => {

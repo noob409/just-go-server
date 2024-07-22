@@ -1,6 +1,8 @@
 import cors from "cors";
 import express, { json } from "express";
 import redoc from "redoc-express";
+import session from 'express-session';
+
 
 import REDOC_CONFIG from "./config/redoc.js";
 import logger from "./logger.js";
@@ -10,11 +12,24 @@ logger.info("[Init] useAPIService.");
 
 const app = express();
 
+// 允许特定的前端域名
+const corsOptions = {
+  origin: 'http://localhost:5173', // 替换为您的前端应用的URL
+  optionsSuccessStatus: 200
+};
+
 // cors
-app.use(cors());
+app.use(cors(corsOptions));
 
 // json body parser
 app.use(json());
+
+app.use(session({
+  secret: 'keyboard cat',
+  resave: false,
+  saveUninitialized: true,
+  cookie: { secure: false }
+}))
 
 // api route
 app.use(routes);

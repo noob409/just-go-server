@@ -1,7 +1,6 @@
 import cors from "cors";
 import express, { json } from "express";
 import redoc from "redoc-express";
-import session from 'express-session';
 
 
 import REDOC_CONFIG from "./config/redoc.js";
@@ -23,13 +22,6 @@ app.use(cors(corsOptions));
 
 // json body parser
 app.use(json());
-
-app.use(session({
-  secret: 'keyboard cat',
-  resave: false,
-  saveUninitialized: true,
-  cookie: { secure: false }
-}))
 
 // api route
 app.use(routes);

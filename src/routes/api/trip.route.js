@@ -1,8 +1,10 @@
 import { Router } from "express";
-import { ownTrip } from "../../controllers/api/trip.controller.js";
+import { keepTrip, ownTrip, popularTrips } from "../../controllers/api/trip.controller.js";
 
 const TripRouter = Router();
 
-TripRouter.get('/Own', ownTrip);
+TripRouter.get("/", popularTrips);
+TripRouter.get("/:id/own", ownTrip);
+TripRouter.get("/:id/keep", keepTrip);
 
 export default TripRouter;

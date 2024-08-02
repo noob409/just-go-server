@@ -1,47 +1,29 @@
-import Board from "../../models/board.js";
-import User from "../../models/user.js";
+import { getUserTrips, getKeepTrips } from "../../service/tripService.js";
 
+// 行程管理 - 我的行程
 export const ownTrip = async (req, res) => {
-    const token = req.header('Authorization');
+    const userId = req.userId;
 
     try {
-        if (token) {
-            
-            const userInfo = await User.findOne({ where: { token: token } });
-
-            const userId = userInfo.id;
-
-            // 目前是用deletable為true 來表示屬於該位使用者的行程。
-            const tripDataAll = await Board.findAll({
-                where: {
-                    userId: userId,
-                    deletable: true
-                }
-            });
-
-            if (tripDataAll.length > 0) {
-
-                const ownTrips = tripDataAll.map(trip => ({
-                    id: trip.id,
-                    title: trip.title,
-                    image: trip.image,
-                    update: null,
-                    labels: trip.label,
-                    like: trip.like,
-                    likeByMe: trip.likeByMe,
-                    isShare: trip.isShare,
-                    deletable: trip.deletable
-                }));
-                console.log(ownTrips);
-
-                return res.status(200).json(ownTrips);
-            } else {
-                return res.status(404).json({ error: 'No trips found for this user or no deletable trips' });
-            }
-        } else {
-            return res.status(401).json({ error: 'Authorization token is required' });
-        }
+        const tripData = await getUserTrips(userId);
+        return res.status(200).json({ data: tripData });
     } catch (error) {
-
+        return res.status(500).json({ message: error.message });
     }
+}
+
+//  行程管理 - 我的收藏
+export const keepTrip = async (req, res) => {
+    const userId = req.userId;
+
+    try {
+        const favorTripData = await getKeepTrips(userId);
+        return res.status(200).json({ data: favorTripData });
+    } catch (error) {
+        return res.status(500).json({ message: error.message });
+    }
+}
+
+// 首頁 - 熱門行程，目前尚未判斷哪些行程是熱門，僅將資料庫的行程全數傳回。
+export const popularTrips = async (req, res) => {
 }

@@ -6,15 +6,11 @@ import jwt from 'jsonwebtoken';
 
 config();
 
-// avatar資料還未定義(formData)
-
-// For encrypt password
+// For encrypt password rounds
 const saltRounds = 10;
-
+// 邏輯需要修改
 const findOrCreateUser = async (userPara, isGoogle) => {
     try {
-
-        const isGmailAccount = userPara.email.endsWith('@gmail.com');
 
         if (isGoogle) {
 
@@ -25,8 +21,10 @@ const findOrCreateUser = async (userPara, isGoogle) => {
                     username: userPara.name,
                     email: userPara.email,
                     password: null,
-                    token: null,
-                    provider: "google"
+                    token: null,    //  剛註冊時先給予null，待uuid產生再作為token payload產生token
+                    avatar: null,   //  暫時先null
+                    provider: "google",
+                    isValid: true
                 },
             });
 
@@ -44,19 +42,15 @@ const findOrCreateUser = async (userPara, isGoogle) => {
 
             const user = {
                 id: userInfo.id,
-                username: userInfo.username,
+                name: userInfo.username,
                 email: userInfo.email,
+                avatar: null    //  暫時先null
             }
             return { user, token };
 
         } else {
 
             /* Form註冊新用戶，如果帳戶已存在則判斷是否曾用google登入註冊，若是則回傳請用google登入；否則回傳帳號已存在 */
-
-            // 檢查後綴是否為gmail帳戶，如果是則不論是否用過google登入，都得使用google第三方登入。
-            if (isGmailAccount) {
-                throw new Error('請使用Google登入並註冊');
-            }
 
             // Hash the password
             const hashedPassword = await bcrypt.hash(userPara.password, saltRounds);
@@ -68,8 +62,10 @@ const findOrCreateUser = async (userPara, isGoogle) => {
                     username: userPara.name,
                     email: userPara.email,
                     password: hashedPassword,
-                    token: null,
-                    provider: "form"
+                    token: null,    //  剛註冊時先給予null，待uuid產生再作為token payload產生token
+                    avatar: null,   //  暫時先null
+                    provider: "form",
+                    isValid: true   //  暫時先true等驗證信做好再改
                 },
             });
 
@@ -84,8 +80,9 @@ const findOrCreateUser = async (userPara, isGoogle) => {
 
                 const user = {
                     id: userInfo.id,
-                    username: userInfo.username,
+                    name: userInfo.username,
                     email: userInfo.email,
+                    avatar: null    //  暫時先null
                 }
                 return { user, token };
             } else {
@@ -99,14 +96,13 @@ const findOrCreateUser = async (userPara, isGoogle) => {
 
 const generateToken = (user) => {
     const payload = {
-        id: user.id,
-        email: user.email,
+        userId: user.id,
     }
-    const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '30d' });
+    const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '60d' });
     return token;
 }
 
-// Google登入邏輯
+// Google登入邏輯，進入findOrCreateUser()，並根據isGoogle: true or false來決定邏輯
 export const getGoogleUserInfo = async (code, isGoogle) => {
 
     const oAuth2Client = new OAuth2Client(
@@ -123,8 +119,8 @@ export const getGoogleUserInfo = async (code, isGoogle) => {
             url: 'https://www.googleapis.com/oauth2/v3/userinfo'
         });
 
-        const user = await findOrCreateUser(userInfoResponse.data, isGoogle);
-        return user;
+        const { user, token } = await findOrCreateUser(userInfoResponse.data, isGoogle);
+        return { user, token };
     } catch (error) {
         throw new Error('Failed to get Google user info: ' + error.message);
     }
@@ -159,8 +155,9 @@ export const loginUser = async (email, password) => {
 
             const user = {
                 id: userInfo.id,
-                username: userInfo.username,
+                name: userInfo.username,
                 email: userInfo.email,
+                avatar: null    //  暫時先null
             }
             return { user, token };
         }
@@ -169,6 +166,7 @@ export const loginUser = async (email, password) => {
     }
 };
 
+// Form註冊邏輯，進入findOrCreateUser()，並根據isGoogle: true or false來決定邏輯
 export const registerUser = async (name, email, password, isGoogle) => {
     try {
 

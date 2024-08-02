@@ -3,22 +3,22 @@ import { DataTypes } from "sequelize";
 import sequelize from "../config/sequelize.js";
 import User from "./user.js";
 
-const Board = sequelize.define("board", {
+const Collection = sequelize.define("collection", {
   id: {
     type: DataTypes.UUID,
     defaultValue: DataTypes.UUIDV4,
     primaryKey: true,
   },
-  title: {
+  googlePlaceId: {
     type: DataTypes.STRING,
     allowNull: false,
-  },
+  }
 }, {
-  freezeTableName: true,
+  freezeTableName: true,   // Prohibit plural
 });
 
 export const associate = () => {
-  Board.belongsTo(User);
+  Collection.belongsTo(User, { as: "user", foreignKey: "userId" });
 };
 
-export default Board;
+export default Collection;

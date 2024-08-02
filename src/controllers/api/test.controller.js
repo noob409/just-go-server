@@ -1,4 +1,4 @@
-import Board from "../../models/board.js";
+import Trip from "../../models/trip.js";
 import User from "../../models/user.js";
 
 export const testController = (req, res) => {
@@ -9,7 +9,7 @@ export const testController = (req, res) => {
 
   console.log(req.body);
   User.findAll({
-    include: Board,
+    include: Trip,
   }).then((users) => {
     res.json(users);
   });

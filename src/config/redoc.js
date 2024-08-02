@@ -1,6 +1,6 @@
 /** @const */
 const REDOC_CONFIG = {
-  title: "API Docs",
+  title: "Just-go-api Docs",
   specUrl: "/docs/swagger.json",
   nonce: "", // <= it is optional,we can omit this key and value
   // we are now start supporting the redocOptions object

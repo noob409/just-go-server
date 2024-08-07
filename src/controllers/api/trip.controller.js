@@ -1,4 +1,4 @@
-import { getUserTrips, getKeepTrips } from "../../service/tripService.js";
+import { getUserTrips, getKeepTrips, getPopularTrips } from "../../service/tripService.js";
 
 // 行程管理 - 我的行程
 export const ownTrip = async (req, res) => {
@@ -24,6 +24,12 @@ export const keepTrip = async (req, res) => {
     }
 }
 
-// 首頁 - 熱門行程，目前尚未判斷哪些行程是熱門，僅將資料庫的行程全數傳回。
+// 首頁 - 熱門行程，目前已點讚數遞減傳回。
 export const popularTrips = async (req, res) => {
+    try {
+        const popularTripData = await getPopularTrips();
+        return res.status(200).json({ data: popularTripData });
+    } catch (error) {
+        return res.status(500).json({ message: error.message });
+    }
 }

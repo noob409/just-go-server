@@ -37,7 +37,7 @@
         "tags": [
           "Auth"
         ],
-        "summary": "User login",
+        "summary": "/api/auth/login",
         "description": "Login a user and return a token. <br>This login function has two modes: one for form login, which requires email and password parameters, and the other for Google login, which requires Google authCode and isGoogle parameters.",
         "operationId": "loginUser",
         "requestBody": {
@@ -108,7 +108,7 @@
         "tags": [
           "Auth"
         ],
-        "summary": "User register",
+        "summary": "/api/auth/register",
         "description": "Register a user. <br>This register function requires username, email, password parameters.",
         "operationId": "registerUser",
         "requestBody": {
@@ -173,27 +173,177 @@
         }
       }
     },
+    "/api/users/{id}": {
+      
+    },
     "/api/trips": {
       "get": {
         "tags": [
           "Trips"
         ],
-        "summary": "Get all trips",
+        "summary": "/api/trips",
         "description": "Get all trips and list the popular trips",
         "operationId": "getTrips",
-        "responses": {}
+        "responses": {
+          "200": {
+            "description": "Successful fetching",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Trip"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No trips found for this user"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
       }
     },
-    "/api/trips/:id/:type": {
+    "/api/trips/{id}/{type}": {
       "get": {
         "tags": [
           "Trips"
         ],
-        "summary": "Get trips by userId",
-        "description": "Get all trips which belongs to the user",
+        "summary": "/api/trips/{id}/{type}",
+        "description": "Retrieve trips for a user based on the specified type (own or keep).",
         "operationId": "getUserTrips",
-        "requestBody": {},
-        "responses": {}
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "User ID to fetch trips for."
+          },
+          {
+            "name": "type",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "own",
+                "keep"
+              ]
+            },
+            "description": "Type of trips to fetch (own or keep)."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful fetching",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "oneOf": [
+                    {
+                      "title": "/own",
+                      "properties": {
+                        "data": {
+                          "type": "object",
+                          "description": "User's own trips and co-edit trips",
+                          "properties": {
+                            "own": {
+                              "type": "array",
+                              "items": {
+                                "$ref": "#/components/schemas/Trip"
+                              }
+                            },
+                            "coEdit": {
+                              "type": "array",
+                              "items": {
+                                "$ref": "#/components/schemas/Trip"
+                              }
+                            }
+                          }
+                        }
+                      }
+                    },
+                    {
+                      "title": "/keep",
+                      "properties": {
+                        "data": {
+                          "type": "array",
+                          "description": "User's favorite trips",
+                          "items": {
+                            "$ref": "#/components/schemas/Trip"
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No trips found for this user"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Trip": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "user": {
+            "type": "string"
+          },
+          "userId": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "image": {
+            "type": "string"
+          },
+          "day": {
+            "type": "string"
+          },
+          "publishDay": {
+            "type": "string"
+          },
+          "labels": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "like": {
+            "type": "integer"
+          },
+          "islike": {
+            "type": "boolean"
+          },
+          "isPublic": {
+            "type": "boolean"
+          }
+        }
       }
     }
   }

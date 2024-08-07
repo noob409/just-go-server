@@ -4,6 +4,7 @@ import { config } from 'dotenv';
 config();
 
 // 用於驗證每次請求的token是否存在、過期...
+// 新增middle folder
 export const verifyToken = (req, res, next) => {
     const token = req.header('Authorization')?.replace('Bearer ', '');
     if (!token) {

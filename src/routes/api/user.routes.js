@@ -2,11 +2,11 @@
 
 import { Router } from "express";
 import { upload } from "../../config/multer.js";
-import { profileChange } from "../../controllers/api/user.controller.js";
+import { profileChange, userInfo } from "../../controllers/api/user.controller.js";
 
 const UserRouter = Router();
 
 UserRouter.put('/:id', upload.single('avatar'), profileChange);
-// UserRouter.get('/:id/')
+UserRouter.get('/:id', userInfo);
 
 export default UserRouter;

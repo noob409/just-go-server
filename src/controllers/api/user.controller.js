@@ -1,11 +1,12 @@
 // src/controllers/api/user.controller.js
 
-import { updateUserProfile } from "../../service/userProfileService.js";
+import { getUserInfo, updateUserProfile } from "../../service/userProfileService.js";
 import fs from 'fs';
 import path from "path";
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 
+// 整合到multer.js
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
@@ -29,9 +30,20 @@ export const profileChange = async (req, res) => {
         }
 
         const updatedUser = await updateUserProfile(userId, name, email, avatarPath);
-        res.json({ data: updatedUser });
+        res.status(200).json({ data: updatedUser });
     } catch (error) {
         res.status(500).json({ message: 'An error occurred while updating the user profile', error });
     }
 
+}
+
+export const userInfo = async (req, res) => {
+    const userId = req.userId;
+
+    try {
+        const userInfo = await getUserInfo(userId);
+        res.status(200).json({ data: userInfo });
+    } catch (error) {
+        res.status(500).json({ message: 'An error occurred while fetching the user information', error });
+    }
 }

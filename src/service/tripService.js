@@ -31,6 +31,7 @@ export const getKeepTrips = async (userId) => {
     }
 }
 
+// 首頁 熱門行程
 export const getPopularTrips = async () => {
     try {
         const tripDataAll = await Trip.findAll({
@@ -59,6 +60,69 @@ export const getPopularTrips = async () => {
     } catch (error) {
         console.error('An error occurred while fetching popular trips:', error);
         throw new Error('An error occurred while fetching popular trips');
+    }
+}
+
+// 根據ID搜尋行程
+export const getTripById = async (tripId) => {
+    try {
+        const trip = await Trip.findByPk(tripId);
+
+        if (trip) {
+            return tripData = {
+                id: trip.id,
+                user: trip.username,
+                userId: trip.userId,
+                title: trip.title,
+                image: trip.image,
+                day: trip.day,
+                publishDay: trip.publishDay,
+                labels: trip.label || [],
+                like: trip.likeCount,
+                islike: trip.isLike,
+                isPublic: trip.isPublic
+            };
+        } else {
+            throw new Error('Not Found')
+        }
+    } catch (error) {
+        throw new Error('An error occurred while fetching tripById');
+    }
+}
+
+// 按讚行程，需要做取消或按讚的邏輯
+{/* 前端需要改成Post跟傳送tripId and userId */ }
+export const putFavorTripById = async (userId, tripId) => {
+    try {
+        const alreadyFavor = await TripLike.findOne({ where: { userId: userId, tripId: tripId } });
+        if (alreadyFavor) {
+            await alreadyFavor.destroy();
+            return false;
+        } else {
+            await TripLike.create({
+                userId: userId,
+                tripId: tripId
+            });
+            return true;
+        }
+    } catch (error) {
+        throw new Error('An error occurred while doing favorTrip');
+    }
+}
+
+// 刪除行程
+{/* 前端需要傳送tripId and userId，以便驗證刪除的trip是屬於該刪除者的 */ }
+export const getDeleteTrip = async (userId, tripId) => {
+    try {
+        const isTripExist = await Trip.findOne({ where: { userId: userId, tripId: tripId } });
+        if (isTripExist) {
+            await isTripExist.destroy();
+            return "The Trip has deleted.";
+        } else {
+            throw new Error('The Trip does not exist.');
+        }
+    } catch (error) {
+        throw new Error('An error occurred while doing deleteTrip');
     }
 }
 
@@ -255,7 +319,7 @@ const getCoEditTrips = async (userId) => {
     } catch (error) {
         throw new Error('An error occurred while fetching co-edit trips');
     }
-};
+}
 
 // Called by getKeepTrips
 const getFavorTrips = async (userId) => {

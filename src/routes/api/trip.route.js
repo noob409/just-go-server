@@ -1,10 +1,13 @@
 import { Router } from "express";
-import { keepTrip, ownTrip, popularTrips } from "../../controllers/api/trip.controller.js";
+import { deleteTrip, favorTrip, keepTrip, ownTrip, popularTrips, searchTripById } from "../../controllers/api/trip.controller.js";
 
 const TripRouter = Router();
 
 TripRouter.get("/", popularTrips);
+TripRouter.get("/:id", searchTripById);
 TripRouter.get("/:id/own", ownTrip);
 TripRouter.get("/:id/keep", keepTrip);
+TripRouter.post("/:id/favor", favorTrip);
+TripRouter.delete("/:id", deleteTrip);
 
 export default TripRouter;

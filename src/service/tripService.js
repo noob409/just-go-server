@@ -92,7 +92,7 @@ export const getTripById = async (tripId) => {
 
 // 按讚行程，需要做取消或按讚的邏輯
 {/* 前端需要改成Post跟傳送tripId and userId */ }
-export const putFavorTripById = async (userId, tripId) => {
+export const favorTripById = async (userId, tripId) => {
     try {
         const alreadyFavor = await TripLike.findOne({ where: { userId: userId, tripId: tripId } });
         if (alreadyFavor) {

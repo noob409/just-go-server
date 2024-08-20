@@ -1,4 +1,4 @@
-import { getUserTrips, getKeepTrips, getPopularTrips, getTripById, getDeleteTrip } from "../../service/tripService.js";
+import { getUserTrips, getKeepTrips, getPopularTrips, getTripById, getDeleteTrip, favorTripById } from "../../service/tripService.js";
 
 // 行程管理 - 我的行程
 export const ownTrip = async (req, res) => {
@@ -50,7 +50,7 @@ export const favorTrip = async (req, res) => {
     const userId = req.userId;
     const tripId = req.tripId;
     try {
-        const isFavor = await putFavorTripById(userId, tripId);
+        const isFavor = await favorTripById(userId, tripId);
         return res.status(200).json(isFavor);
     } catch (error) {
         return res.status(500).json({ message: error.message });

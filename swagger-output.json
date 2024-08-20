@@ -174,7 +174,84 @@
       }
     },
     "/api/users/{id}": {
-      
+      "put": {
+        "tags": [
+          "users"
+        ],
+        "summary": "/api/users/{id}",
+        "description": "Update user information",
+        "operationId": "putUsers",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "User ID to update the user information."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful update",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/userInfo"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "users"
+        ],
+        "summary": "/api/users/{id}",
+        "description": "Get user information",
+        "operationId": "putUsers",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "User ID to fetch the user information."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful fetch",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/userInfo"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
     },
     "/api/trips": {
       "get": {
@@ -208,6 +285,87 @@
           },
           "500": {
             "description": "Server error"
+          }
+        }
+      }
+    },
+    "/api/trips/{id}": {
+      "get": {
+        "tags": [
+          "Trips"
+        ],
+        "summary": "/api/trips/{id}",
+        "description": "Get the specified trip by tripId",
+        "operationId": "getTripById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Trip ID to fetch the specified trip."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful fetching",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Trip"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Trips"
+        ],
+        "summary": "/api/trips/{id}",
+        "description": "Delete the specified trip by tripId",
+        "operationId": "getTripById",
+        "parameters": [
+          {
+            "name": "tripId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Trip ID to delete the specified trip."
+          },
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "User ID to delete the specified trip."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful delete",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
           }
         }
       }
@@ -300,6 +458,48 @@
           }
         }
       }
+    },
+    "/api/trips/{id}/favor": {
+      "post": {
+        "tags": [
+          "Trips"
+        ],
+        "summary": "/api/trips/{id}/favor",
+        "description": "add a tuple to the DB",
+        "operationId": "favorTripById",
+        "parameters": [
+          {
+            "name": "tripId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Trip ID to favor the specified trip."
+          },
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "User ID to favor the specified trip."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful favor",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "boolean"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -342,6 +542,23 @@
           },
           "isPublic": {
             "type": "boolean"
+          }
+        }
+      },
+      "userInfo": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "avatar": {
+            "type": "string"
           }
         }
       }

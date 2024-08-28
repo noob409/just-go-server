@@ -1,10 +1,10 @@
 import { DataTypes } from "sequelize";
 
 import sequelize from "../config/sequelize.js";
-import User from "./user.js";
 import Trip from "./trip.js";
+import Day from "./day.js";
 
-const TripShare = sequelize.define("trip_share", {
+const Plan = sequelize.define("plan", {
   id: {
     type: DataTypes.UUID,
     defaultValue: DataTypes.UUIDV4,
@@ -14,22 +14,15 @@ const TripShare = sequelize.define("trip_share", {
     type: DataTypes.UUID,
     allowNull: false,
   },
-  userId: {
+  startDayId: {
     type: DataTypes.UUID,
     allowNull: false,
   },
-  permission: {
-    type: DataTypes.INTEGER,
-    allowNull: false,
-    defaultValue: 0,
-  },
-}, {
-  freezeTableName: true,   // Prohibit plural
 });
 
 export const associate = () => {
-  TripShare.belongsTo(User, { foreignKey: "userId" });
-  TripShare.belongsTo(Trip, { foreignKey: "tripId" });
+    Plan.belongsTo(Trip, { foreignKey: "tripId" });
+    Plan.hasMany(Day, { foreignKey: "planId" });
 };
 
-export default TripShare;
+export default Plan;

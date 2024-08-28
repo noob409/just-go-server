@@ -9,14 +9,22 @@ const TripLike = sequelize.define("trip_like", {
         type: DataTypes.UUID,
         defaultValue: DataTypes.UUIDV4,
         primaryKey: true,
-    },
+      },
+      tripId: {
+        type: DataTypes.UUID,
+        allowNull: false,
+      },
+      userId: {
+        type: DataTypes.UUID,
+        allowNull: false,
+      },
 }, {
     freezeTableName: true,   // Prohibit plural
 });
 
 export const associate = () => {
-    TripLike.belongsTo(User, { as: "user", foreignKey: "userId" });
-    TripLike.belongsTo(Trip, { as: "trip", foreignKey: "tripId" });
+    TripLike.belongsTo(User, { foreignKey: "userId" });
+    TripLike.belongsTo(Trip, { foreignKey: "tripId" });
 };
 
 export default TripLike;

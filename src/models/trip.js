@@ -4,6 +4,7 @@ import sequelize from "../config/sequelize.js";
 import User from "./user.js";
 import TripLike from "./trip_like.js";
 import TripShare from "./trip_share.js";
+import Plan from "./plan.js";
 
 const Trip = sequelize.define("trip", {
   id: {
@@ -11,50 +12,50 @@ const Trip = sequelize.define("trip", {
     defaultValue: DataTypes.UUIDV4,
     primaryKey: true,
   },
-  username: {
-    type: DataTypes.STRING
+  userId: {
+    type: DataTypes.UUID,
+    allowNull: false,
   },
-  title: {
+  name: {
     type: DataTypes.STRING,
+    allowNull: false,
   },
   image: {
     type: DataTypes.STRING,
   },
-  day: {
-    type: DataTypes.INTEGER,
+  finalPlanId: {
+    type: DataTypes.UUID,
   },
-  publishDay: {
-    type: DataTypes.STRING,
+  linkPermission: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+    defaultValue: 0,
+  },
+  isPublic: {
+    type: DataTypes.BOOLEAN,
+    allowNull: false,
+    defaultValue: false,
+  },
+  publicAt: {
+    type: DataTypes.DATE,
+  },
+  likeCount: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+    defaultValue: 0,
   },
   label: {
     // VARCHAR(255)[]
     type: DataTypes.ARRAY(DataTypes.STRING),
   },
-  likeCount: {
-    type: DataTypes.INTEGER,
-    allowNull: false,
-  },
-  isLike: {
-    type: DataTypes.BOOLEAN,
-  },
-  isPublic: {
-    type: DataTypes.BOOLEAN,
-    allowNull: false,
-  },
-  linkPermission: {
-    type: DataTypes.INTEGER,
-    allowNull: false,
-  },
-  finalPlanId: {
-    type: DataTypes.UUID,
-    defaultValue: DataTypes.UUIDV4
-  }
 }, {
   freezeTableName: true,
 });
 
 export const associate = () => {
-  Trip.belongsTo(User, { as: "user", foreignKey: "userId" });
+  Trip.belongsTo(User, { foreignKey: "userId" });
+  Trip.belongsTo(Plan, { foreignKey: "finalPlanId" });
+  Trip.hasMany(Plan, { foreignKey: "tripId" });
   Trip.hasMany(TripLike, { foreignKey: "tripId" });
   Trip.hasMany(TripShare, { foreignKey: "tripId" });
 };

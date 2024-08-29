@@ -30,14 +30,10 @@ const User = sequelize.define("user", {
   avatar: {
     type: DataTypes.STRING,
   },
-  //  存google或form
-  isGoogle: {
-    type: DataTypes.BOOLEAN,
-    allowNull: false,
-  },
   isValid: {
     type: DataTypes.BOOLEAN,
     allowNull: false,
+    defaultValue: false,
   }
 });
 

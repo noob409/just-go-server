@@ -23,10 +23,6 @@ const User = sequelize.define("user", {
   password: {
     type: DataTypes.STRING,
   },
-  token: {
-    type: DataTypes.STRING,
-    unique: true,
-  },
   avatar: {
     type: DataTypes.STRING,
   },

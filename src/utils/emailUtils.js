@@ -1,3 +1,4 @@
+import Queue from "bull";
 import nodemailer from "nodemailer";
 import { google } from "googleapis";
 
@@ -13,9 +14,27 @@ oauth2Client.setCredentials({
   refresh_token: process.env.OAUTH_REFRESH_TOKEN, // Google OAuth Refresh Token
 });
 
-export const sendVerificationEmail = async (email, token) => {
+export const emailQueue = new Queue("email", {
+  redis: {
+    host: process.env.REDIS_HOST,
+    port: process.env.REDIS_PORT,
+  },
+});
+
+emailQueue.process(async (job, done) => {
   try {
-    const accessToken = await oauth2Client.getAccessToken();
+    const { email, token } = job.data;
+    await sendVerificationEmail(email, token);
+    done();
+  } catch (error) {
+    console.error("Error sending verification email:", error);
+    done(error); // 任務失敗
+  }
+});
+
+const sendVerificationEmail = async (email, token) => {
+  try {
+    const accessToken = (await oauth2Client.getAccessToken()).token;
 
     const transporter = nodemailer.createTransport({
       service: "gmail",
@@ -25,7 +44,7 @@ export const sendVerificationEmail = async (email, token) => {
         clientId: process.env.OAUTH_CLIENT_ID,
         clientSecret: process.env.OAUTH_CLIENT_SECRET,
         refreshToken: process.env.OAUTH_REFRESH_TOKEN,
-        accessToken: accessToken.toString(),
+        accessToken: accessToken,
       },
     });
 
@@ -33,7 +52,7 @@ export const sendVerificationEmail = async (email, token) => {
       from: process.env.OAUTH_EMAIL,
       to: email,
       subject: "Just Go 帳號驗證",
-      text: `請點擊此連結以驗證您的信箱: \nhttp://localhost:80/api/auth/verify?token=${token}`,
+      text: `請點擊此連結以驗證您的信箱: \nhttp://localhost:5173/verify/${token}`,
     };
   
     await transporter.sendMail(mailOptions);

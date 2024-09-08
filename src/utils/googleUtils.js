@@ -4,7 +4,8 @@ const client = new OAuth2Client(process.env.OAUTH_CLIENT_ID, process.env.OAUTH_C
 
 export const getGoogleInfo = async (token) => {
   try {
-    client.setCredentials({ access_token: token });
+    let { tokens } = await client.getToken({ code: token });
+    client.setCredentials({ access_token: tokens });
 
     const response = await client.request({ url: "https://www.googleapis.com/oauth2/v3/userinfo" });
 

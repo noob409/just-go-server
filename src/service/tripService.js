@@ -1,25 +1,27 @@
-import Trip from "../models/trip.js";
-import User from "../models/user.js";
-import TripShare from "../models/trip_share.js";
-import TripLike from "../models/trip_like.js";
+// import Trip from "../models/trip.js";
+// import User from "../models/user.js";
+// import TripShare from "../models/trip_share.js";
+// import TripLike from "../models/trip_like.js";
 
-import Sequelize from "sequelize";
+// import Sequelize from "sequelize";
+
+{/* 此service已被全部移動至controller */}
 
 // 行程管理 -> 我的行程資料獲取
-export const getUserTrips = async (userId) => {
-    try {
-        const ownTrips = await getOwnTrips(userId) || [];
+// export const getUserTrips = async (userId) => {
+//     try {
+//         const ownTrips = await getOwnTrips(userId) || [];
 
-        const coEditTrips = await getCoEditTrips(userId) || [];
+//         const coEditTrips = await getCoEditTrips(userId) || [];
 
-        return {
-            own: ownTrips,
-            coEdit: coEditTrips
-        };
-    } catch (error) {
-        throw new Error('An error occurred while fetching user trips');
-    }
-};
+//         return {
+//             own: ownTrips,
+//             coEdit: coEditTrips
+//         };
+//     } catch (error) {
+//         throw new Error('An error occurred while fetching user trips');
+//     }
+// };
 
 // 行程管理 -> 我的收藏資料獲取
 // export const getKeepTrips = async (userId) => {
@@ -205,36 +207,36 @@ const getCoEditTrips = async (userId) => {
 }
 
 // Called by getKeepTrips
-// const getFavorTrips = async (userId) => {
-//     try {
-//         const favorTrips = await TripLike.findAll({
-//             where: { userId: userId },
-//             include: [
-//                 {
-//                     model: Trip,
-//                     as: 'trip',
-//                 }
-//             ]
-//         });
+const getFavorTrips = async (userId) => {
+    try {
+        const favorTrips = await TripLike.findAll({
+            where: { userId: userId },
+            include: [
+                {
+                    model: Trip,
+                    as: 'trip',
+                }
+            ]
+        });
 
-//         if (favorTrips) {
-//             return favorTrips.map(tripFavor => ({
-//                 id: tripFavor.trip.id,
-//                 user: tripFavor.trip.username,
-//                 userId: tripFavor.trip.userId,
-//                 title: tripFavor.trip.title,
-//                 image: tripFavor.trip.image,
-//                 day: tripFavor.trip.day,
-//                 publishDay: tripFavor.trip.publishDay,
-//                 labels: tripFavor.trip.label || [],
-//                 like: tripFavor.trip.likeCount,
-//                 islike: tripFavor.trip.isLike,
-//                 isPublic: tripFavor.trip.isPublic
-//             }));
-//         } else {
-//             return null;
-//         }
-//     } catch (error) {
-//         throw new Error('An error occurred while fetching favor trips');
-//     }
-// }
+        if (favorTrips) {
+            return favorTrips.map(tripFavor => ({
+                id: tripFavor.trip.id,
+                user: tripFavor.trip.username,
+                userId: tripFavor.trip.userId,
+                title: tripFavor.trip.title,
+                image: tripFavor.trip.image,
+                day: tripFavor.trip.day,
+                publishDay: tripFavor.trip.publishDay,
+                labels: tripFavor.trip.label || [],
+                like: tripFavor.trip.likeCount,
+                islike: tripFavor.trip.isLike,
+                isPublic: tripFavor.trip.isPublic
+            }));
+        } else {
+            return null;
+        }
+    } catch (error) {
+        throw new Error('An error occurred while fetching favor trips');
+    }
+}

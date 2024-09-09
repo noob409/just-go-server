@@ -7,8 +7,8 @@ import Sequelize from "sequelize";
 // 行程管理 - 我的行程
 export const ownTrip = async (req, res) => {
     const userId = req.userId;
-    let ownData = null;
-    let coEditData = null;
+    let ownData = [];
+    let coEditData = [];
     try {
         // 我的行程 - 屬於自己的行程
         const tripDataAll = await Trip.findAll({
@@ -31,7 +31,6 @@ export const ownTrip = async (req, res) => {
                 isPublic: trip.isPublic
             }));
         } else {
-            ownData = null;
         };
 
         // 我的行程 - 共編
@@ -73,7 +72,6 @@ export const ownTrip = async (req, res) => {
                 isPublic: tripShare.trip.isPublic
             }));
         } else {
-            coEditData = null;
         };
         return res.status(200).json({ status: "success", data: { ownData, coEditData } });
     } catch (error) {
@@ -122,13 +120,14 @@ export const keepTrip = async (req, res) => {
 
 //  首頁 - 熱門行程，目前以點讚數遞減傳回。
 export const popularTrips = async (req, res) => {
+    let popularTrips = [];
     try {
         const tripDataAll = await Trip.findAll({
             order: [["likeCount", "DESC"]],
         });
 
         if (tripDataAll.length > 0) {
-            const popularTrips = tripDataAll.map(trip => ({
+            popularTrips = tripDataAll.map(trip => ({
                 id: trip.id,
                 user: trip.username,
                 userId: trip.userId,
@@ -143,7 +142,8 @@ export const popularTrips = async (req, res) => {
             }));
             return res.status(200).json({ status: "success", data: popularTrips });
         } else {
-            return res.status(200).json({ status: "success", data: null });
+            popularTrips = [];
+            return res.status(200).json({ status: "success", data: popularTrips });
         }
     } catch (error) {
         console.error(error);

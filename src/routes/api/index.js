@@ -6,7 +6,7 @@ import { testController } from "../../controllers/api/test.controller.js";
 import AuthRouter from "./auth.routes.js";
 import TripRouter from "./trip.route.js";
 import UserRouter from "./user.routes.js";
-import { verifyToken } from "../../controllers/api/verify.controller.js";
+import { verifyToken } from "../../utils/jwtUtils.js";
 
 const APIRouter = Router();
 

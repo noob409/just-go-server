@@ -27,7 +27,7 @@ export const googleLogin = async (req, res) => {
 
         return res.status(200).json({
             status: "success",
-            data: {
+            user: {
                 id: user.id,
                 name: user.username,
                 email: user.email,

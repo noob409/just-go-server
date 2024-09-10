@@ -7,9 +7,9 @@ import { emailQueue } from "../../utils/emailUtils.js";
 // Google登入邏輯
 export const googleLogin = async (req, res) => {
     try {
-        const { token } = req.body;
+        const { code } = req.body;
 
-        const userInfo = await getGoogleInfo(token);
+        const userInfo = await getGoogleInfo(code);
 
         if (!userInfo) {
             return res.status(401).json({ status: "error", message: "Invalid Google token" });

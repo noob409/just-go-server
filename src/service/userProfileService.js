@@ -1,4 +1,4 @@
-import User from "../models/user.js";
+// import User from "../models/user.js";
 
 // Email Can't be changed.
 // export const updateUserProfile = async (id, name, email, avatar) => {
@@ -28,24 +28,24 @@ import User from "../models/user.js";
 //     }
 // };
 
-export const getUserInfo = async (userId) => {
-    try {
-        const userInfoBuffer = await User.findByPk(userId);
+// export const getUserInfo = async (userId) => {
+//     try {
+//         const userInfoBuffer = await User.findByPk(userId);
 
-        if (userInfoBuffer) {
-            const userData = {
-                id: userInfoBuffer.id,
-                name: userInfoBuffer.username,
-                email: userInfoBuffer.email,
-                avatar: userInfoBuffer.avatar
-            }
+//         if (userInfoBuffer) {
+//             const userData = {
+//                 id: userInfoBuffer.id,
+//                 name: userInfoBuffer.username,
+//                 email: userInfoBuffer.email,
+//                 avatar: userInfoBuffer.avatar
+//             }
 
-            return userData;
-        } else {
-            throw new Error("User not found");
-        }
-    } catch (error) {
-        console.error('Error in getUserInfo:', error);
-        throw new Error(error.message)
-    }
-}
+//             return userData;
+//         } else {
+//             throw new Error("User not found");
+//         }
+//     } catch (error) {
+//         console.error('Error in getUserInfo:', error);
+//         throw new Error(error.message)
+//     }
+// }

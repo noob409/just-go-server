@@ -32,139 +32,40 @@
         "deprecated": true
       }
     },
-    "/api/auth/login": {
-      "post": {
-        "tags": [
-          "Auth"
-        ],
-        "summary": "/api/auth/login",
-        "description": "Login a user and return a token. <br>This login function has two modes: one for form login, which requires email and password parameters, and the other for Google login, which requires Google authCode and isGoogle parameters.",
-        "operationId": "loginUser",
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "email": {
-                    "type": "string"
-                  },
-                  "password": {
-                    "type": "string"
-                  },
-                  "google authCode": {
-                    "type": "string"
-                  },
-                  "isGoogle": {
-                    "type": "boolean"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Successful login",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "user": {
-                      "type": "object",
-                      "properties": {
-                        "id": {
-                          "type": "string"
-                        },
-                        "name": {
-                          "type": "string"
-                        },
-                        "email": {
-                          "type": "string"
-                        },
-                        "avatar": {
-                          "type": "string"
-                        }
-                      }
-                    },
-                    "token": {
-                      "type": "string"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Invalid credentials"
-          }
-        }
-      }
-    },
     "/api/auth/register": {
       "post": {
-        "tags": [
-          "Auth"
-        ],
-        "summary": "/api/auth/register",
-        "description": "Register a user. <br>This register function requires username, email, password parameters.",
-        "operationId": "registerUser",
+        "description": "",
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "201": {
+            "description": "Created"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "409": {
+            "description": "Conflict"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
         "requestBody": {
-          "required": true,
           "content": {
             "application/json": {
               "schema": {
                 "type": "object",
                 "properties": {
                   "username": {
-                    "type": "string"
+                    "example": "any"
                   },
                   "email": {
-                    "type": "string"
+                    "example": "any"
                   },
                   "password": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "username",
-                  "email",
-                  "password"
-                ]
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Successful register, but it should return register true or false. The frontend might need to change its logic.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "user": {
-                      "type": "object",
-                      "properties": {
-                        "id": {
-                          "type": "string"
-                        },
-                        "name": {
-                          "type": "string"
-                        },
-                        "email": {
-                          "type": "string"
-                        },
-                        "avatar": {
-                          "type": "string"
-                        }
-                      }
-                    },
-                    "token": {
-                      "type": "string"
-                    }
+                    "example": "any"
                   }
                 }
               }
@@ -173,130 +74,120 @@
         }
       }
     },
-    "/api/users/{id}": {
-      "put": {
-        "tags": [
-          "users"
-        ],
-        "summary": "/api/users/{id}",
-        "description": "Update user information",
-        "operationId": "putUsers",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "User ID to update the user information."
-          }
-        ],
+    "/api/auth/login": {
+      "post": {
+        "description": "",
         "responses": {
           "200": {
-            "description": "Successful update",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "data": {
-                      "type": "array",
-                      "items": {
-                        "$ref": "#/components/schemas/userInfo"
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      },
-      "get": {
-        "tags": [
-          "users"
-        ],
-        "summary": "/api/users/{id}",
-        "description": "Get user information",
-        "operationId": "putUsers",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "User ID to fetch the user information."
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful fetch",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "data": {
-                      "type": "array",
-                      "items": {
-                        "$ref": "#/components/schemas/userInfo"
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/trips": {
-      "get": {
-        "tags": [
-          "Trips"
-        ],
-        "summary": "/api/trips",
-        "description": "Get all trips and list the popular trips",
-        "operationId": "getTrips",
-        "responses": {
-          "200": {
-            "description": "Successful fetching",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "data": {
-                      "type": "array",
-                      "items": {
-                        "$ref": "#/components/schemas/Trip"
-                      }
-                    }
-                  }
-                }
-              }
-            }
+            "description": "OK"
           },
-          "404": {
-            "description": "No trips found for this user"
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
           },
           "500": {
-            "description": "Server error"
+            "description": "Internal Server Error"
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": {
+                    "example": "any"
+                  },
+                  "password": {
+                    "example": "any"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/google": {
+      "post": {
+        "description": "",
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "token": {
+                    "example": "any"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/verify/{token}": {
+      "get": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "token",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/api/trips/": {
+      "get": {
+        "description": "",
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "500": {
+            "description": "Internal Server Error"
           }
         }
       }
     },
     "/api/trips/{id}": {
       "get": {
-        "tags": [
-          "Trips"
-        ],
-        "summary": "/api/trips/{id}",
-        "description": "Get the specified trip by tripId",
-        "operationId": "getTripById",
+        "description": "",
         "parameters": [
           {
             "name": "id",
@@ -304,24 +195,168 @@
             "required": true,
             "schema": {
               "type": "string"
-            },
-            "description": "Trip ID to fetch the specified trip."
+            }
           }
         ],
         "responses": {
           "200": {
-            "description": "Successful fetching",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "data": {
-                      "type": "array",
-                      "items": {
-                        "$ref": "#/components/schemas/Trip"
-                      }
-                    }
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      },
+      "delete": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/api/trips/{id}/own": {
+      "get": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/api/trips/{id}/keep": {
+      "get": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/api/trips/{id}/favor": {
+      "post": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/api/users/{id}": {
+      "put": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "example": "any"
+                  },
+                  "email": {
+                    "example": "any"
                   }
                 }
               }
@@ -329,55 +364,8 @@
           }
         }
       },
-      "delete": {
-        "tags": [
-          "Trips"
-        ],
-        "summary": "/api/trips/{id}",
-        "description": "Delete the specified trip by tripId",
-        "operationId": "getTripById",
-        "parameters": [
-          {
-            "name": "tripId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "Trip ID to delete the specified trip."
-          },
-          {
-            "name": "userId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "User ID to delete the specified trip."
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful delete",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/trips/{id}/{type}": {
       "get": {
-        "tags": [
-          "Trips"
-        ],
-        "summary": "/api/trips/{id}/{type}",
-        "description": "Retrieve trips for a user based on the specified type (own or keep).",
-        "operationId": "getUserTrips",
+        "description": "",
         "parameters": [
           {
             "name": "id",
@@ -385,180 +373,21 @@
             "required": true,
             "schema": {
               "type": "string"
-            },
-            "description": "User ID to fetch trips for."
-          },
-          {
-            "name": "type",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "enum": [
-                "own",
-                "keep"
-              ]
-            },
-            "description": "Type of trips to fetch (own or keep)."
+            }
           }
         ],
         "responses": {
           "200": {
-            "description": "Successful fetching",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "oneOf": [
-                    {
-                      "title": "/own",
-                      "properties": {
-                        "data": {
-                          "type": "object",
-                          "description": "User's own trips and co-edit trips",
-                          "properties": {
-                            "own": {
-                              "type": "array",
-                              "items": {
-                                "$ref": "#/components/schemas/Trip"
-                              }
-                            },
-                            "coEdit": {
-                              "type": "array",
-                              "items": {
-                                "$ref": "#/components/schemas/Trip"
-                              }
-                            }
-                          }
-                        }
-                      }
-                    },
-                    {
-                      "title": "/keep",
-                      "properties": {
-                        "data": {
-                          "type": "array",
-                          "description": "User's favorite trips",
-                          "items": {
-                            "$ref": "#/components/schemas/Trip"
-                          }
-                        }
-                      }
-                    }
-                  ]
-                }
-              }
-            }
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
           },
           "404": {
-            "description": "No trips found for this user"
+            "description": "Not Found"
           },
           "500": {
-            "description": "Server error"
-          }
-        }
-      }
-    },
-    "/api/trips/{id}/favor": {
-      "post": {
-        "tags": [
-          "Trips"
-        ],
-        "summary": "/api/trips/{id}/favor",
-        "description": "add a tuple to the DB",
-        "operationId": "favorTripById",
-        "parameters": [
-          {
-            "name": "tripId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "Trip ID to favor the specified trip."
-          },
-          {
-            "name": "userId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "User ID to favor the specified trip."
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful favor",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "boolean"
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-  },
-  "components": {
-    "schemas": {
-      "Trip": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "user": {
-            "type": "string"
-          },
-          "userId": {
-            "type": "string"
-          },
-          "title": {
-            "type": "string"
-          },
-          "image": {
-            "type": "string"
-          },
-          "day": {
-            "type": "string"
-          },
-          "publishDay": {
-            "type": "string"
-          },
-          "labels": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "like": {
-            "type": "integer"
-          },
-          "islike": {
-            "type": "boolean"
-          },
-          "isPublic": {
-            "type": "boolean"
-          }
-        }
-      },
-      "userInfo": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "name": {
-            "type": "string"
-          },
-          "email": {
-            "type": "string"
-          },
-          "avatar": {
-            "type": "string"
+            "description": "Internal Server Error"
           }
         }
       }

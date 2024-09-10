@@ -218,7 +218,7 @@ export const deleteTrip = async (req, res) => {
             await isTripExist.destroy();
             return res.status(200).json({ status: "success", message: "The trip has deleted." });
         } else {
-            return res.status(401).json({ status: "error", message: "The trip does not exist." });
+            return res.status(404).json({ status: "error", message: "The trip does not exist." });
         }
     } catch (error) {
         console.error(error);

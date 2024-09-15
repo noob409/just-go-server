@@ -154,25 +154,21 @@ export const popularTrips = async (req, res) => {
             order: [["likeCount", "DESC"]],
         });
 
-        if (tripDataAll.length > 0) {
-            popularTrips = tripDataAll.map(trip => ({
-                id: trip.id,
-                userId: trip.userId,
-                title: trip.tripName,
-                image: trip.image,
-                finalPlanId: trip.finalPlanId,
-                departureDate: trip.departureDate,
-                endDate: trip.endDate,
-                linkPermission: trip.linkPermission,
-                isPublic: trip.isPublic,
-                publishDay: trip.publicAt,
-                like: trip.likeCount,
-                labels: trip.label || [],
-            }));
-            return res.status(200).json({ status: "success", data: popularTrips });
-        } else {
-            return res.status(200).json({ status: "success", data: [] });
-        }
+        popularTrips = tripDataAll.map(trip => ({
+            id: trip.id,
+            userId: trip.userId,
+            title: trip.tripName,
+            image: trip.image,
+            finalPlanId: trip.finalPlanId,
+            departureDate: trip.departureDate,
+            endDate: trip.endDate,
+            linkPermission: trip.linkPermission,
+            isPublic: trip.isPublic,
+            publishDay: trip.publicAt,
+            like: trip.likeCount,
+            labels: trip.label || [],
+        }));
+        return res.status(200).json({ status: "success", data: popularTrips });
     } catch (error) {
         console.error(error);
         return res.status(500).json({ status: "error", message: "Internal server error" });
@@ -182,6 +178,7 @@ export const popularTrips = async (req, res) => {
 //  根據ID搜尋行程
 export const searchTripById = async (req, res) => {
     const tripId = req.tripId;
+    let tripDataById = [];
 
     // 檢查是否所有必要的欄位都存在
     const requiredFields = { tripId };
@@ -202,28 +199,21 @@ export const searchTripById = async (req, res) => {
         //     return res.status(403).json({ status: "error", message: "You do not have permission to view this trip." });
         // }
 
-        if (trip) {
-            return res.status(200).json(
-                {
-                    status: "success",
-                    data: {
-                        id: trip.id,
-                        userId: trip.userId,
-                        title: trip.tripName,
-                        image: trip.image,
-                        finalPlanId: trip.finalPlanId,
-                        departureDate: trip.departureDate,
-                        endDate: trip.endDate,
-                        linkPermission: trip.linkPermission,
-                        isPublic: trip.isPublic,
-                        publishDay: trip.publicAt,
-                        like: trip.likeCount,
-                        labels: trip.label || [],
-                    }
-                });
-        } else {
-            return res.status(200).json({ status: "success", data: [] });
+        tripDataById = {
+            id: trip.id,
+            userId: trip.userId,
+            title: trip.tripName,
+            image: trip.image,
+            finalPlanId: trip.finalPlanId,
+            departureDate: trip.departureDate,
+            endDate: trip.endDate,
+            linkPermission: trip.linkPermission,
+            isPublic: trip.isPublic,
+            publishDay: trip.publicAt,
+            like: trip.likeCount,
+            labels: trip.label || [],
         }
+        return res.status(200).json({ status: "success", data: tripDataById });
     } catch (error) {
         console.error(error);
         return res.status(500).json({ status: "error", message: "Internal server error" });

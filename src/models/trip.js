@@ -16,7 +16,7 @@ const Trip = sequelize.define("trip", {
     type: DataTypes.UUID,
     allowNull: false,
   },
-  name: {
+  tripName: {
     type: DataTypes.STRING,
     allowNull: false,
   },
@@ -25,6 +25,14 @@ const Trip = sequelize.define("trip", {
   },
   finalPlanId: {
     type: DataTypes.UUID,
+  },
+  departureDate: {
+    type: DataTypes.STRING,
+    allowNull: false,
+  },
+  endDate: {
+    type: DataTypes.STRING,
+    allowNull: false
   },
   linkPermission: {
     type: DataTypes.INTEGER,

@@ -1,14 +1,30 @@
+import Collection from "../../models/collection.js";
 import Trip from "../../models/trip.js";
 import TripLike from "../../models/trip_like.js";
 import TripShare from "../../models/trip_share.js";
+import { checkRequiredFields } from "../../utils/checkRequiredFieldsUtils.js";
 
 import Sequelize from "sequelize";
 
-// 行程管理 - 我的行程
+{/* 回傳的資料庫欄位要修改 */ }
+
+//  行程管理 - 我的行程
 export const ownTrip = async (req, res) => {
     const userId = req.userId;
     let ownData = [];
     let coEditData = [];
+
+    // 檢查是否所有必要的欄位都存在
+    const requiredFields = { userId };
+    const missingFields = checkRequiredFields(requiredFields);
+
+    if (missingFields.length > 0) {
+        return res.status(400).json({
+            status: "error",
+            message: `Missing required fields: ${missingFields.join(', ')}`
+        });
+    }
+
     try {
         // 我的行程 - 屬於自己的行程
         const tripDataAll = await Trip.findAll({
@@ -19,19 +35,19 @@ export const ownTrip = async (req, res) => {
         if (tripDataAll.length > 0) {
             ownData = tripDataAll.map(trip => ({
                 id: trip.id,
-                user: trip.username,
                 userId: trip.userId,
-                title: trip.title,
+                title: trip.tripName,
                 image: trip.image,
-                day: trip.day,
-                publishDay: trip.publishDay,
-                labels: trip.label || [],
+                finalPlanId: trip.finalPlanId,
+                departureDate: trip.departureDate,
+                endDate: trip.endDate,
+                linkPermission: trip.linkPermission,
+                isPublic: trip.isPublic,
+                publishDay: trip.publicAt,
                 like: trip.likeCount,
-                islike: trip.isLike,
-                isPublic: trip.isPublic
+                labels: trip.label || [],
             }));
-        } else {
-        };
+        }
 
         // 我的行程 - 共編
         // Left Outer join，取得TripShare、TripShare交集Trip的資料集，並排除交集中的trip的擁有者是某user的資料。
@@ -59,20 +75,20 @@ export const ownTrip = async (req, res) => {
 
         if (coEditTrips) {
             coEditData = coEditTrips.map(tripShare => ({
-                id: tripShare.trip.id,
-                user: tripShare.trip.username,
-                userId: tripShare.trip.userId,
-                title: tripShare.trip.title,
-                image: tripShare.trip.image,
-                day: tripShare.trip.day,
-                publishDay: tripShare.trip.publishDay,
-                labels: tripShare.trip.label || [],
-                like: tripShare.trip.likeCount,
-                islike: tripShare.trip.isLike,
-                isPublic: tripShare.trip.isPublic
+                id: tripShare.id,
+                userId: tripShare.userId,
+                title: tripShare.tripName,
+                image: tripShare.image,
+                finalPlanId: tripShare.finalPlanId,
+                departureDate: tripShare.departureDate,
+                endDate: tripShare.endDate,
+                linkPermission: tripShare.linkPermission,
+                isPublic: tripShare.isPublic,
+                publishDay: tripShare.publicAt,
+                like: tripShare.likeCount,
+                labels: tripShare.label || [],
             }));
-        } else {
-        };
+        }
         return res.status(200).json({ status: "success", data: { ownData, coEditData } });
     } catch (error) {
         console.error(error);
@@ -83,6 +99,19 @@ export const ownTrip = async (req, res) => {
 //  行程管理 - 我的收藏
 export const keepTrip = async (req, res) => {
     const userId = req.userId;
+    let favorData = [];
+
+    // 檢查是否所有必要的欄位都存在
+    const requiredFields = { userId };
+    const missingFields = checkRequiredFields(requiredFields);
+
+    if (missingFields.length > 0) {
+        return res.status(400).json({
+            status: "error",
+            message: `Missing required fields: ${missingFields.join(', ')}`
+        });
+    }
+
     try {
         const favorTrips = await TripLike.findAll({
             where: { userId: userId },
@@ -95,23 +124,22 @@ export const keepTrip = async (req, res) => {
         });
 
         if (favorTrips) {
-            const favorData = favorTrips.map(tripFavor => ({
-                id: tripFavor.trip.id,
-                user: tripFavor.trip.username,
-                userId: tripFavor.trip.userId,
-                title: tripFavor.trip.title,
-                image: tripFavor.trip.image,
-                day: tripFavor.trip.day,
-                publishDay: tripFavor.trip.publishDay,
-                labels: tripFavor.trip.label || [],
-                like: tripFavor.trip.likeCount,
-                islike: tripFavor.trip.isLike,
-                isPublic: tripFavor.trip.isPublic
+            favorData = favorTrips.map(tripFavor => ({
+                id: tripFavor.id,
+                userId: tripFavor.userId,
+                title: tripFavor.tripName,
+                image: tripFavor.image,
+                finalPlanId: tripFavor.finalPlanId,
+                departureDate: tripFavor.departureDate,
+                endDate: tripFavor.endDate,
+                linkPermission: tripFavor.linkPermission,
+                isPublic: tripFavor.isPublic,
+                publishDay: tripFavor.publicAt,
+                like: tripFavor.likeCount,
+                labels: tripFavor.label || [],
             }));
-            return res.status(200).json({ status: "success", data: favorData })
-        } else {
-            return res.status(200).json({ status: "success", data: null });
         }
+        return res.status(200).json({ status: "success", data: favorData });
     } catch (error) {
         console.error(error);
         return res.status(500).json({ status: "error", message: "Internal server error" });
@@ -129,21 +157,21 @@ export const popularTrips = async (req, res) => {
         if (tripDataAll.length > 0) {
             popularTrips = tripDataAll.map(trip => ({
                 id: trip.id,
-                user: trip.username,
                 userId: trip.userId,
-                title: trip.title,
+                title: trip.tripName,
                 image: trip.image,
-                day: trip.day,
-                publishDay: trip.publishDay,
-                labels: trip.label || [],
+                finalPlanId: trip.finalPlanId,
+                departureDate: trip.departureDate,
+                endDate: trip.endDate,
+                linkPermission: trip.linkPermission,
+                isPublic: trip.isPublic,
+                publishDay: trip.publicAt,
                 like: trip.likeCount,
-                islike: trip.isLike,
-                isPublic: trip.isPublic
+                labels: trip.label || [],
             }));
             return res.status(200).json({ status: "success", data: popularTrips });
         } else {
-            popularTrips = [];
-            return res.status(200).json({ status: "success", data: popularTrips });
+            return res.status(200).json({ status: "success", data: [] });
         }
     } catch (error) {
         console.error(error);
@@ -154,8 +182,25 @@ export const popularTrips = async (req, res) => {
 //  根據ID搜尋行程
 export const searchTripById = async (req, res) => {
     const tripId = req.tripId;
+
+    // 檢查是否所有必要的欄位都存在
+    const requiredFields = { tripId };
+    const missingFields = checkRequiredFields(requiredFields);
+
+    if (missingFields.length > 0) {
+        return res.status(400).json({
+            status: "error",
+            message: `Missing required fields: ${missingFields.join(', ')}`
+        });
+    }
+
     try {
         const trip = await Trip.findByPk(tripId);
+
+        // // 檢查行程是否為公開的，假設 req.userId 是當前使用者的 ID，這個部分的權限需要再確認
+        // if (!trip.isPublic && trip.userId !== req.userId) {
+        //     return res.status(403).json({ status: "error", message: "You do not have permission to view this trip." });
+        // }
 
         if (trip) {
             return res.status(200).json(
@@ -163,20 +208,21 @@ export const searchTripById = async (req, res) => {
                     status: "success",
                     data: {
                         id: trip.id,
-                        user: trip.username,
                         userId: trip.userId,
-                        title: trip.title,
+                        title: trip.tripName,
                         image: trip.image,
-                        day: trip.day,
-                        publishDay: trip.publishDay,
-                        labels: trip.label || [],
+                        finalPlanId: trip.finalPlanId,
+                        departureDate: trip.departureDate,
+                        endDate: trip.endDate,
+                        linkPermission: trip.linkPermission,
+                        isPublic: trip.isPublic,
+                        publishDay: trip.publicAt,
                         like: trip.likeCount,
-                        islike: trip.isLike,
-                        isPublic: trip.isPublic
+                        labels: trip.label || [],
                     }
                 });
         } else {
-            return res.status(404).json({ status: "error", message: "404 Not Found" })
+            return res.status(200).json({ status: "success", data: [] });
         }
     } catch (error) {
         console.error(error);
@@ -188,19 +234,31 @@ export const searchTripById = async (req, res) => {
 export const favorTrip = async (req, res) => {
     const userId = req.userId;
     const tripId = req.tripId;
+
+    // 檢查是否所有必要的欄位都存在
+    const requiredFields = { userId, tripId };
+    const missingFields = checkRequiredFields(requiredFields);
+
+    if (missingFields.length > 0) {
+        return res.status(400).json({
+            status: "error",
+            message: `Missing required fields: ${missingFields.join(', ')}`
+        });
+    }
+
     try {
         const alreadyFavor = await TripLike.findOne({ where: { userId: userId, tripId: tripId } });
         if (alreadyFavor) {
             //  user對trip取消按讚
             await alreadyFavor.destroy();
-            return res.status(200).json({ status: "success", message: false });
+            return res.status(200).json({ status: "success", message: "unliked" });
         } else {
             // user對trip按讚
             await TripLike.create({
                 userId: userId,
                 tripId: tripId
             });
-            return res.status(200).json({ status: "success", message: true });;
+            return res.status(201).json({ status: "success", message: "liked" });;  //  201 created code: successful response and resource created.
         }
     } catch (error) {
         console.error(error);
@@ -212,16 +270,107 @@ export const favorTrip = async (req, res) => {
 export const deleteTrip = async (req, res) => {
     const userId = req.userId;
     const tripId = req.tripId;
+
+    // 檢查是否所有必要的欄位都存在
+    const requiredFields = { userId, tripId };
+    const missingFields = checkRequiredFields(requiredFields);
+
+    if (missingFields.length > 0) {
+        return res.status(400).json({
+            status: "error",
+            message: `Missing required fields: ${missingFields.join(', ')}`
+        });
+    }
+
     try {
-        const isTripExist = await Trip.findOne({ where: { userId: userId, tripId: tripId } });
-        if (isTripExist) {
-            await isTripExist.destroy();
-            return res.status(200).json({ status: "success", message: "The trip has deleted." });
-        } else {
-            return res.status(404).json({ status: "error", message: "The trip does not exist." });
+        const isTripExist = await Trip.findOne({ where: { tripId: tripId } });
+
+        if (!isTripExist) {
+            return res.status(404).json({ status: "error", message: "The trip does not exist." });  // 行程不存在
         }
+        // 確認行程是否屬於當前使用者
+        if (isTripExist.userId !== userId) {
+            return res.status(403).json({ status: "error", message: "You are not authorized to delete this trip." });  // 使用者無權限刪除別人的行程
+        }
+
+        await isTripExist.destroy();
+        return res.status(200).json({ status: "success", message: "The trip has deleted." });
     } catch (error) {
         console.error(error);
         return res.status(500).json({ status: "error", message: "Internal server error" });
+    }
+}
+
+//  建立行程
+export const createTrip = async (req, res) => {
+    const { image, title, departureDate, endDate, userId } = req.body;
+
+    // 檢查是否所有必要的欄位都存在
+    const requiredFields = { image, title, departureDate, endDate, userId };
+    const missingFields = checkRequiredFields(requiredFields);
+
+    if (missingFields.length > 0) {
+        return res.status(400).json({
+            status: "error",
+            message: `Missing required fields: ${missingFields.join(', ')}`
+        });
+    }
+
+    try {
+        const newTrip = await Trip.create({
+            userId: userId,
+            name: title,
+            image: image,
+            departureDate: departureDate,
+            endDate: endDate,
+        });
+        const returnTrip = {
+            id: newTrip.id,
+            userId: newTrip.userId,
+            image: newTrip.image,
+            finalPlanId: newTrip.finalPlanId,
+            departureDate: newTrip.departureDate,
+            endDate: newTrip.endDate,
+            linkPermission: newTrip.linkPermission,
+            isPublic: newTrip.isPublic,
+            publicAt: newTrip.publicAt,
+            likeCount: newTrip.likeCount,
+            label: newTrip.label,
+        };
+        return res.status(201).json({ status: "success", data: { returnTrip } });
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({ status: "error", message: "Internal server error" });
+    }
+}
+
+//  景點收藏
+export const addPlaceCollection = async (req, res) => {
+    const { userId, googlePlaceId } = req.body;
+    // 檢查是否所有必要的欄位都存在
+    const requiredFields = { userId, googlePlaceId };
+    const missingFields = checkRequiredFields(requiredFields);
+
+    if (missingFields.length > 0) {
+        return res.status(400).json({
+            status: "error",
+            message: `Missing required fields: ${missingFields.join(', ')}`
+        });
+    }
+
+    try {
+        const addCollection = await Collection.create({
+            userId: userId,
+            googlePlaceId: googlePlaceId,
+        });
+        const collectionInfo = {
+            id: addCollection.id,
+            userId: addCollection.userId,
+            googlePlaceId: addCollection.googlePlaceId,
+        };
+        return res.status(201).json({ status: "success", data: collectionInfo });
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({ status: "error", message: "Internal server error" })
     }
 }

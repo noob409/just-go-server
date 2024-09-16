@@ -1,12 +1,6 @@
 // src/controllers/api/user.controller.js
-import { fileURLToPath } from 'url';
-import { dirname } from 'path';
 import { checkRequiredFields } from "../../utils/checkRequiredFieldsUtils.js";
 import User from "../../models/user.js";
-
-// 整合到multer.js
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
 
 // 個人頁面更改邏輯
 export const profileChange = async (req, res) => {
@@ -29,7 +23,7 @@ export const profileChange = async (req, res) => {
     try {
         let avatarPath = null;
         const userToBeChanged = await User.findByPk(userId);
-        
+
         if (userToBeChanged) {
             if (avatarFile) {
                 // 如果上傳了新圖片，更新avatarPath

@@ -1,4 +1,5 @@
 // src/config/multer.js
+import fs from 'fs';
 import multer from 'multer';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -7,10 +8,17 @@ import { dirname } from 'path';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
+// 定義uploads目錄
+const uploadDir = path.join(__dirname, '../uploads');
+
+// 檢查並創建uploads目錄（如果不存在）
+if (!fs.existsSync(uploadDir)) {
+    fs.mkdirSync(uploadDir, { recursive: true }); // 使用 recursive 確保所有父目錄都被創建
+}
+
 // 設置 storage
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
-        const uploadDir = path.join(__dirname, '../uploads');
         cb(null, uploadDir);
     },
     filename: function (req, file, cb) {

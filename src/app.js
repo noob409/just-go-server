@@ -1,7 +1,8 @@
 import cors from "cors";
 import express, { json } from "express";
 import redoc from "redoc-express";
-
+import path from "path";
+import { fileURLToPath } from 'url';
 
 import REDOC_CONFIG from "./config/redoc.js";
 import logger from "./logger.js";
@@ -22,6 +23,11 @@ app.use(cors(corsOptions));
 
 // json body parser
 app.use(json());
+
+// 設置靜態資源目錄
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+app.use("/uploads", express.static(path.join(__dirname, 'uploads')));
 
 // api route
 app.use(routes);

@@ -1,7 +1,4 @@
 // src/controllers/api/user.controller.js
-import fs from 'fs';
-import path from "path";
-
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 import { checkRequiredFields } from "../../utils/checkRequiredFieldsUtils.js";
@@ -30,22 +27,15 @@ export const profileChange = async (req, res) => {
     }
 
     try {
-        // 整合到multer.js
-        const uploadDir = path.join(__dirname, '../../uploads'); // 確認uploads目錄的正確路徑
-        if (!fs.existsSync(uploadDir)) {
-            fs.mkdirSync(uploadDir);
-        }
-
         let avatarPath = null;
-
+        const userToBeChanged = await User.findByPk(userId);
+        
         if (userToBeChanged) {
-            // 保留現有的 avatar，除非上傳了新的圖片
-            const userToBeChanged = await User.findByPk(userId);
-
             if (avatarFile) {
                 // 如果上傳了新圖片，更新avatarPath
                 avatarPath = `/uploads/${avatarFile.filename}`;
             } else {
+                // 保留現有的 avatar，除非上傳了新的圖片
                 avatarPath = userToBeChanged.avatar;
             }
 
@@ -53,7 +43,7 @@ export const profileChange = async (req, res) => {
             userToBeChanged.avatar = avatarPath;  // 如果沒有上傳新圖片，avatar保留原值
             await userToBeChanged.save();
 
-            const avatarUrl = avatarPath.includes('http') 
+            const avatarUrl = avatarPath.includes('http')
                 ? avatarPath  // 如果是Google相片的完整URL
                 : `/uploads/${avatarFile ? avatarFile.filename : userToBeChanged.avatar}`; // 如果是儲存在伺服器的相片
 

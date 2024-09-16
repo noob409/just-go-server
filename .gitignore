@@ -5,3 +5,4 @@ node_modules
 *.crt
 *.key
 src/uploads/
+src/service/

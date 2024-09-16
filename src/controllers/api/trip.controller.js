@@ -6,8 +6,6 @@ import { checkRequiredFields } from "../../utils/checkRequiredFieldsUtils.js";
 
 import Sequelize from "sequelize";
 
-{/* 回傳的資料庫欄位要修改 */ }
-
 //  行程管理 - 我的行程
 export const ownTrip = async (req, res) => {
     const userId = req.userId;
@@ -49,8 +47,8 @@ export const ownTrip = async (req, res) => {
             }));
         }
 
-        // 我的行程 - 共編
-        // Left Outer join，取得TripShare、TripShare交集Trip的資料集，並排除交集中的trip的擁有者是某user的資料。
+        {/* 我的行程 - 共編
+            Left Outer join，取得TripShare、TripShare交集Trip的資料集，並排除交集中的trip的擁有者是某user的資料 */}
         const coEditTrips = await TripShare.findAll({
             where: { userId: userId, },
             include: [

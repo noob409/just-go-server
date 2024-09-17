@@ -293,9 +293,6 @@
           "200": {
             "description": "OK"
           },
-          "204": {
-            "description": "No Content"
-          },
           "400": {
             "description": "Bad Request"
           },
@@ -344,8 +341,8 @@
       "post": {
         "description": "",
         "responses": {
-          "200": {
-            "description": "OK"
+          "201": {
+            "description": "Created"
           },
           "400": {
             "description": "Bad Request"
@@ -363,9 +360,6 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "image": {
-                    "example": "any"
-                  },
                   "title": {
                     "example": "any"
                   },
@@ -389,8 +383,8 @@
       "post": {
         "description": "",
         "responses": {
-          "200": {
-            "description": "OK"
+          "201": {
+            "description": "Created"
           },
           "400": {
             "description": "Bad Request"
@@ -438,6 +432,9 @@
           "200": {
             "description": "OK"
           },
+          "400": {
+            "description": "Bad Request"
+          },
           "401": {
             "description": "Unauthorized"
           },
@@ -455,9 +452,6 @@
                 "type": "object",
                 "properties": {
                   "name": {
-                    "example": "any"
-                  },
-                  "email": {
                     "example": "any"
                   }
                 }
@@ -481,6 +475,9 @@
         "responses": {
           "200": {
             "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
           },
           "401": {
             "description": "Unauthorized"

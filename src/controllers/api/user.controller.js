@@ -1,13 +1,12 @@
 // src/controllers/api/user.controller.js
-import { checkRequiredFields } from "../../utils/checkRequiredFieldsUtils.js";
 import User from "../../models/user.js";
+import { checkRequiredFields } from "../../utils/checkRequirdFieldsUtils.js";
 
 // 個人頁面更改邏輯
 export const profileChange = async (req, res) => {
     const userId = req.params.id;
     const { name } = req.body;
-    const avatarFile = req.file;
-    console.log(avatarFile);
+    const avatarFile = req.file;    //  can be null
 
     // 檢查是否所有必要的欄位都存在
     const requiredFields = { userId, name };
@@ -38,8 +37,8 @@ export const profileChange = async (req, res) => {
             await userToBeChanged.save();
 
             const avatarUrl = avatarPath.includes('http')
-                ? avatarPath  // 如果是Google相片的完整URL
-                : `/uploads/${avatarFile ? avatarFile.filename : userToBeChanged.avatar}`; // 如果是儲存在伺服器的相片
+                ? avatarPath // 如果是 Google 相片的完整 URL
+                : avatarPath; // 如果是儲存在伺服器的相片，確保路徑不重複
 
             const userInfo = {
                 id: userToBeChanged.id,
@@ -78,9 +77,9 @@ export const userInfo = async (req, res) => {
 
         if (userInfoBuffer) {
             // 假設 avatar 存儲了完整的 URL 或是相對路徑
-            const avatarUrl = userInfoBuffer.avatar.includes('http')
-                ? userInfoBuffer.avatar  // 完整的 URL（例如 Google 相片）
-                : `/uploads/${userInfoBuffer.avatar}`; // 相對路徑（儲存在伺服器上的相片）
+            const avatarUrl = avatarPath.includes('http')
+                ? avatarPath // 如果是 Google 相片的完整 URL
+                : avatarPath; // 如果是儲存在伺服器的相片，確保路徑不重複
 
             const userData = {
                 id: userInfoBuffer.id,

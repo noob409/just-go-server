@@ -2,7 +2,7 @@ import Collection from "../../models/collection.js";
 import Trip from "../../models/trip.js";
 import TripLike from "../../models/trip_like.js";
 import TripShare from "../../models/trip_share.js";
-import { checkRequiredFields } from "../../utils/checkRequiredFieldsUtils.js";
+import { checkRequiredFields } from "../../utils/checkRequirdFieldsUtils.js";
 
 import Sequelize from "sequelize";
 
@@ -31,19 +31,34 @@ export const ownTrip = async (req, res) => {
             }
         });
         if (tripDataAll.length > 0) {
+            // ownData = tripDataAll.map(trip => ({
+            //     id: trip.id,
+            //     userId: trip.userId,
+            //     title: trip.tripName,
+            //     image: trip.image,
+            //     finalPlanId: trip.finalPlanId,
+            //     departureDate: trip.departureDate,
+            //     endDate: trip.endDate,
+            //     linkPermission: trip.linkPermission,
+            //     isPublic: trip.isPublic,
+            //     publishDay: trip.publicAt,
+            //     like: trip.likeCount,
+            //     labels: trip.label || [],
+            // }));
+
+            // Test 前端資料接收格式
             ownData = tripDataAll.map(trip => ({
                 id: trip.id,
+                user: null,
                 userId: trip.userId,
                 title: trip.tripName,
                 image: trip.image,
-                finalPlanId: trip.finalPlanId,
-                departureDate: trip.departureDate,
-                endDate: trip.endDate,
-                linkPermission: trip.linkPermission,
-                isPublic: trip.isPublic,
+                day: 0,
                 publishDay: trip.publicAt,
-                like: trip.likeCount,
                 labels: trip.label || [],
+                like: trip.likeCount,
+                isLike: false,
+                isPublic: trip.isPublic,
             }));
         }
 
@@ -72,20 +87,36 @@ export const ownTrip = async (req, res) => {
         });
 
         if (coEditTrips) {
-            coEditData = coEditTrips.map(tripShare => ({
-                id: tripShare.id,
-                userId: tripShare.userId,
-                title: tripShare.tripName,
-                image: tripShare.image,
-                finalPlanId: tripShare.finalPlanId,
-                departureDate: tripShare.departureDate,
-                endDate: tripShare.endDate,
-                linkPermission: tripShare.linkPermission,
-                isPublic: tripShare.isPublic,
-                publishDay: tripShare.publicAt,
-                like: tripShare.likeCount,
-                labels: tripShare.label || [],
+            // coEditData = coEditTrips.map(tripShare => ({
+            //     id: tripShare.id,
+            //     userId: tripShare.userId,
+            //     title: tripShare.tripName,
+            //     image: tripShare.image,
+            //     finalPlanId: tripShare.finalPlanId,
+            //     departureDate: tripShare.departureDate,
+            //     endDate: tripShare.endDate,
+            //     linkPermission: tripShare.linkPermission,
+            //     isPublic: tripShare.isPublic,
+            //     publishDay: tripShare.publicAt,
+            //     like: tripShare.likeCount,
+            //     labels: tripShare.label || [],
+            // }));
+
+            // Test 前端資料接收格式
+            coEditData = coEditTrips.map(trip => ({
+                id: trip.id,
+                user: null,
+                userId: trip.userId,
+                title: trip.tripName,
+                image: trip.image,
+                day: 0,
+                publishDay: trip.publicAt,
+                labels: trip.label || [],
+                like: trip.likeCount,
+                isLike: false,
+                isPublic: trip.isPublic,
             }));
+
         }
         return res.status(200).json({ status: "success", data: { ownData, coEditData } });
     } catch (error) {
@@ -122,19 +153,34 @@ export const keepTrip = async (req, res) => {
         });
 
         if (favorTrips) {
-            favorData = favorTrips.map(tripFavor => ({
-                id: tripFavor.id,
-                userId: tripFavor.userId,
-                title: tripFavor.tripName,
-                image: tripFavor.image,
-                finalPlanId: tripFavor.finalPlanId,
-                departureDate: tripFavor.departureDate,
-                endDate: tripFavor.endDate,
-                linkPermission: tripFavor.linkPermission,
-                isPublic: tripFavor.isPublic,
-                publishDay: tripFavor.publicAt,
-                like: tripFavor.likeCount,
-                labels: tripFavor.label || [],
+            // favorData = favorTrips.map(tripFavor => ({
+            //     id: tripFavor.id,
+            //     userId: tripFavor.userId,
+            //     title: tripFavor.tripName,
+            //     image: tripFavor.image,
+            //     finalPlanId: tripFavor.finalPlanId,
+            //     departureDate: tripFavor.departureDate,
+            //     endDate: tripFavor.endDate,
+            //     linkPermission: tripFavor.linkPermission,
+            //     isPublic: tripFavor.isPublic,
+            //     publishDay: tripFavor.publicAt,
+            //     like: tripFavor.likeCount,
+            //     labels: tripFavor.label || [],
+            // }));
+
+            // Test 前端資料接收格式
+            favorData = favorTrips.map(trip => ({
+                id: trip.id,
+                user: null,
+                userId: trip.userId,
+                title: trip.tripName,
+                image: trip.image,
+                day: 0,
+                publishDay: trip.publicAt,
+                labels: trip.label || [],
+                like: trip.likeCount,
+                isLike: false,
+                isPublic: trip.isPublic,
             }));
         }
         return res.status(200).json({ status: "success", data: favorData });
@@ -152,19 +198,34 @@ export const popularTrips = async (req, res) => {
             order: [["likeCount", "DESC"]],
         });
 
+        // popularTrips = tripDataAll.map(trip => ({
+        //     id: trip.id,
+        //     userId: trip.userId,
+        //     title: trip.tripName,
+        //     image: trip.image,
+        //     finalPlanId: trip.finalPlanId,
+        //     departureDate: trip.departureDate,
+        //     endDate: trip.endDate,
+        //     linkPermission: trip.linkPermission,
+        //     isPublic: trip.isPublic,
+        //     publishDay: trip.publicAt,
+        //     like: trip.likeCount,
+        //     labels: trip.label || [],
+        // }));
+
+        // Test 前端資料接收格式
         popularTrips = tripDataAll.map(trip => ({
             id: trip.id,
+            user: null,
             userId: trip.userId,
             title: trip.tripName,
             image: trip.image,
-            finalPlanId: trip.finalPlanId,
-            departureDate: trip.departureDate,
-            endDate: trip.endDate,
-            linkPermission: trip.linkPermission,
-            isPublic: trip.isPublic,
+            day: 0,
             publishDay: trip.publicAt,
-            like: trip.likeCount,
             labels: trip.label || [],
+            like: trip.likeCount,
+            isLike: false,
+            isPublic: trip.isPublic,
         }));
         return res.status(200).json({ status: "success", data: popularTrips });
     } catch (error) {
@@ -174,13 +235,16 @@ export const popularTrips = async (req, res) => {
 }
 
 //  根據ID搜尋行程
-export const searchTripById = async (req, res) => {
+export const searchTripById = async (req, res, next) => {
+
     const tripId = req.tripId;
     let tripDataById = [];
 
     // 檢查是否所有必要的欄位都存在
     const requiredFields = { tripId };
     const missingFields = checkRequiredFields(requiredFields);
+    console.log('Missing fields:', missingFields); // 確認缺少的欄位
+
 
     if (missingFields.length > 0) {
         return res.status(400).json({
@@ -197,20 +261,36 @@ export const searchTripById = async (req, res) => {
         //     return res.status(403).json({ status: "error", message: "You do not have permission to view this trip." });
         // }
 
+        // tripDataById = {
+        //     id: trip.id,
+        //     userId: trip.userId,
+        //     title: trip.tripName,
+        //     image: trip.image,
+        //     finalPlanId: trip.finalPlanId,
+        //     departureDate: trip.departureDate,
+        //     endDate: trip.endDate,
+        //     linkPermission: trip.linkPermission,
+        //     isPublic: trip.isPublic,
+        //     publishDay: trip.publicAt,
+        //     like: trip.likeCount,
+        //     labels: trip.label || [],
+        // }
+
+        // Test 前端資料接收格式
         tripDataById = {
             id: trip.id,
+            user: null,
             userId: trip.userId,
             title: trip.tripName,
             image: trip.image,
-            finalPlanId: trip.finalPlanId,
-            departureDate: trip.departureDate,
-            endDate: trip.endDate,
-            linkPermission: trip.linkPermission,
-            isPublic: trip.isPublic,
+            day: 0,
             publishDay: trip.publicAt,
-            like: trip.likeCount,
             labels: trip.label || [],
-        }
+            like: trip.likeCount,
+            isLike: false,
+            isPublic: trip.isPublic,
+        };
+
         return res.status(200).json({ status: "success", data: tripDataById });
     } catch (error) {
         console.error(error);
@@ -291,10 +371,11 @@ export const deleteTrip = async (req, res) => {
 
 //  建立行程
 export const createTrip = async (req, res) => {
-    const { image, title, departureDate, endDate, userId } = req.body;
+    const { title, departureDate, endDate, userId } = req.body;
+    const tripAvatar = req.file;    //  image can be null;
 
     // 檢查是否所有必要的欄位都存在
-    const requiredFields = { image, title, departureDate, endDate, userId };
+    const requiredFields = { userId, title, departureDate, endDate };
     const missingFields = checkRequiredFields(requiredFields);
 
     if (missingFields.length > 0) {
@@ -305,26 +386,48 @@ export const createTrip = async (req, res) => {
     }
 
     try {
+        let tripAvatarPath = null;
+
+        if (tripAvatar) {
+            tripAvatarPath = `/uploads/${avatarFile.filename}`;
+        }
+
         const newTrip = await Trip.create({
             userId: userId,
             name: title,
-            image: image,
+            image: tripAvatarPath,
             departureDate: departureDate,
             endDate: endDate,
         });
+        // const returnTrip = {
+        //     id: newTrip.id,
+        //     userId: newTrip.userId,
+        //     image: newTrip.image,
+        //     finalPlanId: newTrip.finalPlanId,
+        //     departureDate: newTrip.departureDate,
+        //     endDate: newTrip.endDate,
+        //     linkPermission: newTrip.linkPermission,
+        //     isPublic: newTrip.isPublic,
+        //     publicAt: newTrip.publicAt,
+        //     likeCount: newTrip.likeCount,
+        //     label: newTrip.label,
+        // };
+
+        // Test 前端資料接收格式
         const returnTrip = {
             id: newTrip.id,
+            user: null,
             userId: newTrip.userId,
+            title: newTrip.tripName,
             image: newTrip.image,
-            finalPlanId: newTrip.finalPlanId,
-            departureDate: newTrip.departureDate,
-            endDate: newTrip.endDate,
-            linkPermission: newTrip.linkPermission,
+            day: 0,
+            publishDay: newTrip.publicAt,
+            labels: newTrip.label || [],
+            like: newTrip.likeCount,
+            isLike: false,
             isPublic: newTrip.isPublic,
-            publicAt: newTrip.publicAt,
-            likeCount: newTrip.likeCount,
-            label: newTrip.label,
         };
+
         return res.status(201).json({ status: "success", data: { returnTrip } });
     } catch (error) {
         console.log(error);
@@ -332,9 +435,15 @@ export const createTrip = async (req, res) => {
     }
 }
 
+//  更新行程資訊
+export const updateTripInfo = async (req, res) => {
+
+}
+
 //  景點收藏
 export const addPlaceCollection = async (req, res) => {
     const { userId, googlePlaceId } = req.body;
+
     // 檢查是否所有必要的欄位都存在
     const requiredFields = { userId, googlePlaceId };
     const missingFields = checkRequiredFields(requiredFields);
@@ -359,6 +468,6 @@ export const addPlaceCollection = async (req, res) => {
         return res.status(201).json({ status: "success", data: collectionInfo });
     } catch (error) {
         console.log(error);
-        return res.status(500).json({ status: "error", message: "Internal server error" })
+        return res.status(500).json({ status: "error", message: "Internal server error" });
     }
 }

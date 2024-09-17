@@ -15,43 +15,6 @@ export const googleLogin = async (req, res) => {
             return res.status(401).json({ status: "error", message: "Invalid Google token" });
         }
 
-        // // 尋找是否有對應的 email 使用者
-        // let user = await User.findOne({ where: { email: userInfo.email } });
-
-        // if (user) {
-        //     // 如果使用者已經存在，不要覆蓋密碼
-        //     return res.status(200).json({
-        //         status: "success",
-        //         user: {
-        //             id: user.id,
-        //             name: user.username,
-        //             email: user.email,
-        //             avatar: user.avatar,
-        //         },
-        //         token: generateToken(user.id),
-        //     });
-        // } else {
-        //     // 如果使用者不存在，則創建新帳戶，密碼欄位設為 null
-        //     user = await User.create({
-        //         username: userInfo.name,
-        //         email: userInfo.email,
-        //         isValid: true,
-        //         avatar: userInfo.picture,
-        //         password: null,  // Google 登入帳號無密碼
-        //     });
-
-        //     return res.status(200).json({
-        //         status: "success",
-        //         user: {
-        //             id: user.id,
-        //             name: user.username,
-        //             email: user.email,
-        //             avatar: user.avatar,
-        //         },
-        //         token: generateToken(user.id),
-        //     });
-        // }
-
         const [user] = await User.findOrCreate({
             where: { email: userInfo.email },
             defaults: {

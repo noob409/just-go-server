@@ -472,3 +472,7 @@ export const addPlaceCollection = async (req, res) => {
         return res.status(500).json({ status: "error", message: "Internal server error" });
     }
 }
+
+//  把景點加入方案的邏輯
+
+//  新增方案

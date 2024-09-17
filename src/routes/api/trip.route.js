@@ -10,7 +10,7 @@ TripRouter.delete("/:id", deleteTrip);
 
 TripRouter.post("/create", createTrip);
 TripRouter.post("/collections", addPlaceCollection);
-TripRouter.patch("/collections", addPlaceCollection);
+// TripRouter.delete("/collections", addPlaceCollection);
 
 // 獲取特定用戶的行程（共編）
 TripRouter.get("/users/:id/own", ownTrip);

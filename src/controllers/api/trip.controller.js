@@ -234,10 +234,11 @@ export const popularTrips = async (req, res) => {
     }
 }
 
-//  根據ID搜尋行程
+/* searchTripById會需要行程是否公開、是否有共編權限，這些邏輯來判斷是否可以讓user查詢 */
+//  根據Trip ID搜尋行程
 export const searchTripById = async (req, res, next) => {
 
-    const tripId = req.tripId;
+    const tripId = req.param.id;
     let tripDataById = [];
 
     // 檢查是否所有必要的欄位都存在

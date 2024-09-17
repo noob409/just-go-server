@@ -28,11 +28,13 @@
         changeOrigin: true,
     },
 
-`trip.share.controller`: 新增共編新增及更新的功能
+`trip.share.controller`: 新增 加入共編及更新的功能
 
 ## 待更改的部分
 
-`auth.controller`: 如果要修改的話，前端會比較複雜，
+`auth.controller`: 如果要修改的話，前端會比較複雜，因為也會動到頁面邏輯。
+
 第一次使用google登入的話，必須強迫設定密碼，爾後，登入就可以使用google或是表單登入。
+
 第一次使用表單註冊的話，如果通過驗證信的話，爾後，google登入也會成功。
 但如果沒通過驗證信的話，且又使用google登入的話，我的想法是直接設定驗證通過就沒問題；如果又用表單註冊的話，應該就允許他重新註冊或是重發驗證信，我個人prefer later。

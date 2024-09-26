@@ -27,8 +27,9 @@ export const validateLogin = [
   },
 ];
 
+//  Here, token stands for auth-code
 export const validateGoogleLogin = [
-  check("code").notEmpty().withMessage("code is required"),
+  check("token").notEmpty().withMessage("token is required"),
 
   (req, res, next) => {
     const errors = validationResult(req);

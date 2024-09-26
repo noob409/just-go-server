@@ -15,18 +15,15 @@ const Attraction = sequelize.define("attraction", {
   },
   startAt: {
     type: DataTypes.DATE,
-    allowNull: false,
   },
   endAt: {
     type: DataTypes.DATE,
-    allowNull: false,
   },
   note: {
     type: DataTypes.STRING,
   },
   googlePlaceId: {
     type: DataTypes.STRING,
-    allowNull: false,
   },
   nextAttractionId: {
     type: DataTypes.UUID,

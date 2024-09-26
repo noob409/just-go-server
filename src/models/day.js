@@ -16,7 +16,6 @@ const Day = sequelize.define("day", {
   },
   startAttractionId: {
     type: DataTypes.UUID,
-    allowNull: false,
   },
   nextDayId: {
     type: DataTypes.UUID,

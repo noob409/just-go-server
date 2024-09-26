@@ -3,9 +3,12 @@ import Trip from "../../models/trip.js";
 import TripLike from "../../models/trip_like.js";
 import TripShare from "../../models/trip_share.js";
 import Plan from "../../models/plan.js";
+import Day from "../../models/day.js";
+import Attraction from "../../models/attraction.js";
 import { checkRequiredFields } from "../../utils/checkRequirdFieldsUtils.js";
 
 import Sequelize from "sequelize";
+import { P } from "pino";
 
 //  行程管理 - 我的行程
 // export const ownTrip = async (req, res) => {
@@ -346,7 +349,7 @@ export const deleteTrip = async (req, res) => {
     }
 }
 
-//  建立行程，這邊需要初始化一開始的方案
+//  建立行程
 export const createTrip = async (req, res) => {
     const { title, startTime, endTime, userId } = req.body;
     const tripAvatar = req.file;    //  image can be null;
@@ -366,10 +369,26 @@ export const createTrip = async (req, res) => {
             endDate: endTime,
         });
 
-        await Plan.create({
+        const defaultPlan = await Plan.create({
             tripId: newTrip.id,
-            startDayId: null,
         });
+
+        const defaultDay = await Day.create({
+            planId: defaultPlan.id,
+        })
+
+        const defaultAttraction = await Attraction.create({
+            dayId: defaultDay.id,
+        })
+
+        // 更新 Plan 的 startDayId 為新創建的 Day
+        defaultPlan.startDayId = defaultDay.id;
+        await defaultPlan.save();
+
+        // 更新 Day 的 startAttractionId 為新創建的 Attraction
+        defaultDay.startAttractionId = defaultAttraction.id;
+        await defaultDay.save();
+
         // const returnTrip = {
         //     id: newTrip.id,
         //     userId: newTrip.userId,
@@ -430,11 +449,11 @@ export const addPlaceCollection = async (req, res) => {
             return res.status(409).json({
                 status: "error",
                 message: "This place is already in your collection.",
-                data: {
-                    id: existingCollection.id,
-                    userId: existingCollection.userId,
-                    googlePlaceId: existingCollection.googlePlaceId,
-                }
+                // data: {
+                //     id: existingCollection.id,
+                //     userId: existingCollection.userId,
+                //     googlePlaceId: existingCollection.googlePlaceId,
+                // }
             });
         }
 
@@ -469,6 +488,67 @@ export const deletePlaceCollection = async (req, res) => {
     }
 }
 
+//  把景點加入方案的邏輯
+//  如果該天的景點是空的、插在最後面或最前面、插在中間，那如何得知前一筆是否存在
+export const placeToPlan = async (req, res) => {
+    const { collectionId, planId, dayId, startAt, endAt, note } = req.body;
+
+    try {
+        const collectionToBeAdded = await Collection.findByPk(collectionId);
+        if (!collectionToBeAdded) {
+            return res.status(404).json({ status: "error", message: "Place not found" });
+        }
+
+        // 查找對應的 Day
+        const day = await Day.findByPk(dayId);
+        if (!day) {
+            return res.status(404).json({ status: "error", message: "Day not found" });
+        }
+
+        // 確認該 Day 是否屬於該 Plan
+        if (day.planId !== planId) {
+            return res.status(400).json({ status: "error", message: "Day does not belong to the specified plan" });
+        }
+
+        // 檢查該 Day 是否有起始的景點
+        let previousAttraction = null;
+        if (day.startAttractionId) {
+            // 從起始景點開始，找到應該插入的位置
+            let currentAttraction = await Attraction.findByPk(day.startAttractionId);
+            while (currentAttraction && currentAttraction.startAt < startAt) {
+                previousAttraction = currentAttraction;
+                currentAttraction = await Attraction.findByPk(currentAttraction.nextAttractionId);
+            }
+        }
+
+        // 創建新的景點
+        const newAttraction = await Attraction.create({
+            dayId: dayId,
+            startAt: startAt,
+            endAt: endAt,
+            note: note || null,
+            googlePlaceId: collectionToBeAdded.googlePlaceId,
+            nextAttractionId: previousAttraction ? previousAttraction.nextAttractionId : null,
+        });
+
+        if (previousAttraction) {
+            // 如果前一個景點存在，將其 nextAttractionId 設置為新景點的 ID
+            await previousAttraction.update({ nextAttractionId: newAttraction.id });
+        } else {
+            // 如果沒有前一個景點，表示插入的是第一個景點，更新 Day 的 startAttractionId
+            await day.update({ startAttractionId: newAttraction.id });
+        }
+
+        return res.status(201).json({
+            status: "success",
+            data: newAttraction,
+        });
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({ status: "error", message: "Internal server error" });
+    }
+}
+
 //  建立方案ABC...
 export const createPlan = async (req, res) => {
     const { tripId } = req.body;
@@ -491,8 +571,23 @@ export const createPlan = async (req, res) => {
         // 創建新的方案
         const newPlan = await Plan.create({
             tripId: tripId,
-            startDayId: null // 可以設置為 null，稍後添加天數
         });
+
+        const newDay = await Day.create({
+            planId: newPlan.id
+        });
+
+        const newAttraction = await Attraction.create({
+            dayId: newDay.id
+        });
+
+        // 更新 Plan 的 startDayId 為新創建的 Day
+        newPlan.startDayId = newDay.id;
+        await newPlan.save();
+
+        // 更新 Day 的 startAttractionId 為新創建的 Attraction
+        newDay.startAttractionId = newAttraction.id;
+        await newDay.save();
 
         return res.status(201).json({
             status: "success",
@@ -508,7 +603,78 @@ export const createPlan = async (req, res) => {
     }
 }
 
-//  把景點加入方案的邏輯
-export const placeToPlan = async (req, res) => {
+//  更新方案資料
+export const updatePlan = async (req, res) => {
 
 }
+
+//  新增天數
+export const addDay = async (req, res) => {
+    const { planId, dayId } = req.body;
+
+    try {
+        const prevDay = await Day.findByPk(dayId);
+        if (prevDay) {
+            const nextDay = await Day.create({
+                planId: planId,
+            })
+
+            prevDay.nextDayId = nextDay.id;
+            await prevDay.save();
+
+            return res.status(201).json({ status: "success", message: "An day had been added" });
+        } else {
+            return res.status(404).json({ status: "error", message: "Day not found" });
+        }
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ status: "error", message: "Internal server error" });
+    }
+}
+
+//  取得某Plan的所有DaysId，並回傳給前端，前端需要再用這些ID，當使用者點某一天時，拿這個ID去call後端拿attraction資料
+export const getDay = async (req, res) => {
+    const { planId } = req.body;
+
+    try {
+        const selectedPlan = await Plan.findByPk(planId);
+        if (!selectedPlan) {
+            return res.status(404).json({ status: "error", message: "Plan not found" });
+        }
+
+        //  一個plan可能會有好幾個Day，該如何loop檢查Day.nextDayId並傳回該plan的所有Day
+        //  開始遞迴獲取所有 Day
+        const getAllDays = async (currentDayId, daysId = []) => {
+            if (!currentDayId) return daysId;
+
+            // 查找當前的 Day
+            const currentDay = await Day.findByPk(currentDayId);
+
+            if (!currentDay) return daysId; // 如果找不到，返回當前已收集的 days
+
+            // 將當前 DayId 加入 days 陣列
+            daysId.push(currentDay.id);
+
+            // 遞迴查找下一個 Day
+            return getAllDays(currentDay.nextDayId, daysId);
+        };
+
+        // 從 Plan 的 startDayId 開始查找
+        const allDays = await getAllDays(selectedPlan.startDayId);
+
+        return res.status(200).json({
+            status: "success",
+            data: allDays,
+        });
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ status: "error", message: "Internal server error" });
+    }
+}
+
+//  取得某Day的所有Attraction資料
+export const getAttraction = async (req, res) => {
+
+}
+
+//  調換Day順序

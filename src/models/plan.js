@@ -16,7 +16,6 @@ const Plan = sequelize.define("plan", {
   },
   startDayId: {
     type: DataTypes.UUID,
-    allowNull: false,
   },
 });
 

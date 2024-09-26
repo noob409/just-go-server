@@ -346,7 +346,7 @@ export const deleteTrip = async (req, res) => {
     }
 }
 
-//  建立行程
+//  建立行程，這邊需要初始化一開始的方案
 export const createTrip = async (req, res) => {
     const { title, startTime, endTime, userId } = req.body;
     const tripAvatar = req.file;    //  image can be null;
@@ -364,6 +364,11 @@ export const createTrip = async (req, res) => {
             image: tripAvatarPath,
             departureDate: startTime,
             endDate: endTime,
+        });
+
+        await Plan.create({
+            tripId: newTrip.id,
+            startDayId: null,
         });
         // const returnTrip = {
         //     id: newTrip.id,

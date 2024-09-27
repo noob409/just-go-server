@@ -8,7 +8,6 @@ import Attraction from "../../models/attraction.js";
 import { checkRequiredFields } from "../../utils/checkRequirdFieldsUtils.js";
 
 import Sequelize from "sequelize";
-import { P } from "pino";
 
 //  行程管理 - 我的行程
 // export const ownTrip = async (req, res) => {
@@ -241,8 +240,7 @@ export const popularTrips = async (req, res) => {
 /* searchTripById會需要行程是否公開、是否有共編權限，這些邏輯來判斷是否可以讓user查詢 */
 //  根據Trip ID搜尋行程
 export const searchTripById = async (req, res, next) => {
-
-    const tripId = req.param.id;
+    const tripId = req.params.id;
     let tripDataById = [];
 
     try {
@@ -325,13 +323,13 @@ export const favorTrip = async (req, res) => {
     }
 }
 
-//  刪除行程
+//  刪除行程，意味著，所有與之相關的方案都要被刪除（待修改）
 export const deleteTrip = async (req, res) => {
     const userId = req.userId;
     const tripId = req.params.id;
 
     try {
-        const isTripExist = await Trip.findOne({ where: { tripId: tripId } });
+        const isTripExist = await Trip.findByPk(tripId);
 
         if (!isTripExist) {
             return res.status(404).json({ status: "error", message: "The trip does not exist." });  // 行程不存在
@@ -351,7 +349,8 @@ export const deleteTrip = async (req, res) => {
 
 //  建立行程
 export const createTrip = async (req, res) => {
-    const { title, startTime, endTime, userId } = req.body;
+    const { title, startTime, endTime } = req.body;
+    const userId = req.userId;
     const tripAvatar = req.file;    //  image can be null;
 
     try {
@@ -363,7 +362,7 @@ export const createTrip = async (req, res) => {
 
         const newTrip = await Trip.create({
             userId: userId,
-            name: title,
+            tripName: title,
             image: tripAvatarPath,
             departureDate: startTime,
             endDate: endTime,
@@ -373,21 +372,74 @@ export const createTrip = async (req, res) => {
             tripId: newTrip.id,
         });
 
-        const defaultDay = await Day.create({
-            planId: defaultPlan.id,
-        })
+        // 初始化天數：根據開始日和結束日動態生成
+        let prevDay = null;
+        let firstDay = null;
+        const startDate = new Date(startTime);
+        const endDate = new Date(endTime);
+        let currentDate = new Date(startDate);
+        const dayList = [];
 
-        const defaultAttraction = await Attraction.create({
-            dayId: defaultDay.id,
-        })
+        while (currentDate <= endDate) {
+            // 創建每一天的 Day
+            const newDay = await Day.create({
+                planId: defaultPlan.id,
+            });
 
-        // 更新 Plan 的 startDayId 為新創建的 Day
-        defaultPlan.startDayId = defaultDay.id;
-        await defaultPlan.save();
+            // 如果是第一天，設置 startDayId
+            if (!firstDay) {
+                firstDay = newDay;
+                defaultPlan.startDayId = newDay.id;
+                await defaultPlan.save();
+            }
 
-        // 更新 Day 的 startAttractionId 為新創建的 Attraction
-        defaultDay.startAttractionId = defaultAttraction.id;
-        await defaultDay.save();
+            // 如果有前一天，設置前一天的 nextDayId
+            if (prevDay) {
+                prevDay.nextDayId = newDay.id;
+                await prevDay.save();
+            }
+
+            // 為新一天創建一個空的 Attraction
+            const defaultAttraction = await Attraction.create({
+                dayId: newDay.id,
+            });
+
+            // 更新 Day 的 startAttractionId 為新創建的 Attraction
+            newDay.startAttractionId = defaultAttraction.id;
+            await newDay.save();
+
+            // 新增至 dayList
+            dayList.push({
+                day: {
+                    id: newDay.id,
+                    planId: newDay.planId,
+                    startAttractionId: newDay.startAttractionId,
+                    nextDayId: newDay.nextDayId,
+                    createdAt: newDay.createdAt,
+                    updatedAt: newDay.updatedAt,
+                },
+                attrList: {
+                    id: defaultAttraction.id,
+                    dayId: defaultAttraction.dayId,
+                    startAt: defaultAttraction.startAt,
+                    endAt: defaultAttraction.endAt,
+                    note: defaultAttraction.note,
+                    googlePlaceId: defaultAttraction.googlePlaceId,
+                    nextAttractionId: defaultAttraction.nextAttractionId
+                }
+            });
+
+            // 更新 prevDay 為當前創建的 Day
+            prevDay = newDay;
+
+            // 日期遞增一天
+            currentDate.setDate(currentDate.getDate() + 1);
+        }
+
+        // 設置 nextDayId
+        for (let i = 0; i < dayList.length - 1; i++) {
+            dayList[i].day.nextDayId = dayList[i + 1].day.id; // 更新當前 day 的 nextDayId 為下一天的 ID
+        }
 
         // const returnTrip = {
         //     id: newTrip.id,
@@ -403,26 +455,33 @@ export const createTrip = async (req, res) => {
         //     label: newTrip.label,
         // };
 
-        // Test 前端資料接收格式
-        const returnTrip = {
-            id: newTrip.id,
-            user: null,
-            userId: newTrip.userId,
-            title: newTrip.tripName,
-            image: newTrip.image,
-            day: 0,
-            publishDay: newTrip.publicAt,
-            labels: newTrip.label || [],
-            like: newTrip.likeCount,
-            isLike: false,
-            isPublic: newTrip.isPublic,
-        };
-
-        return res.status(201).json({ status: "success", data: { returnTrip } });
+        return res.status(201).json({
+            status: "success", data: {
+                tripInfo: {
+                    id: newTrip.id,
+                    user: null,
+                    userId: newTrip.userId,
+                    title: newTrip.tripName,
+                    image: newTrip.image,
+                    day: 0,
+                    publishDay: newTrip.publicAt,
+                    labels: newTrip.label || [],
+                    like: newTrip.likeCount,
+                    isLike: false,
+                    isPublic: newTrip.isPublic,
+                },
+                dayList: dayList,
+            }
+        });
     } catch (error) {
         console.log(error);
         return res.status(500).json({ status: "error", message: "Internal server error" });
     }
+}
+
+//  取得行程資料
+export const getTrip = async (req, res) => {
+
 }
 
 //  更新行程資訊
@@ -449,11 +508,6 @@ export const addPlaceCollection = async (req, res) => {
             return res.status(409).json({
                 status: "error",
                 message: "This place is already in your collection.",
-                // data: {
-                //     id: existingCollection.id,
-                //     userId: existingCollection.userId,
-                //     googlePlaceId: existingCollection.googlePlaceId,
-                // }
             });
         }
 
@@ -488,8 +542,28 @@ export const deletePlaceCollection = async (req, res) => {
     }
 }
 
+//  取得所有收藏景點
+export const getCollection = async (req, res) => {
+    try {
+        const collectionInfo = await Collection.findAll();
+
+        // Test 前端資料接收格式
+        let collections = collectionInfo.map(collect => ({
+            id: collect.id,
+            userId: collect.userId,
+            googlePlaceId: collect.googlePlaceId
+        }));
+        return res.status(200).json({ status: "success", data: collections });
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({ status: "error", message: "Internal server error" });
+    }
+}
+
 //  把景點加入方案的邏輯
 //  如果該天的景點是空的、插在最後面或最前面、插在中間，那如何得知前一筆是否存在
+//  這邊需要新增一個 如果tripId !== plan.tripId則報錯
+//  插入順序沒有重排、nextAttraction也沒有加上
 export const placeToPlan = async (req, res) => {
     const { collectionId, planId, dayId, startAt, endAt, note } = req.body;
 
@@ -510,33 +584,41 @@ export const placeToPlan = async (req, res) => {
             return res.status(400).json({ status: "error", message: "Day does not belong to the specified plan" });
         }
 
-        // 檢查該 Day 是否有起始的景點
+        // 先找到插入位置
         let previousAttraction = null;
-        if (day.startAttractionId) {
-            // 從起始景點開始，找到應該插入的位置
-            let currentAttraction = await Attraction.findByPk(day.startAttractionId);
-            while (currentAttraction && currentAttraction.startAt < startAt) {
-                previousAttraction = currentAttraction;
+        let currentAttraction = await Attraction.findByPk(day.startAttractionId);
+        
+        // Loop through attractions to find the correct insert position
+        while (currentAttraction && new Date(currentAttraction.startAt) < new Date(startAt)) {
+            previousAttraction = currentAttraction;
+            if (currentAttraction.nextAttractionId) {
                 currentAttraction = await Attraction.findByPk(currentAttraction.nextAttractionId);
+            } else {
+                break; // No more attractions to compare
             }
         }
 
-        // 創建新的景點
+        // Create the new attraction
         const newAttraction = await Attraction.create({
             dayId: dayId,
             startAt: startAt,
             endAt: endAt,
             note: note || null,
             googlePlaceId: collectionToBeAdded.googlePlaceId,
-            nextAttractionId: previousAttraction ? previousAttraction.nextAttractionId : null,
+            nextAttractionId: currentAttraction ? currentAttraction.id : null,
         });
 
         if (previousAttraction) {
-            // 如果前一個景點存在，將其 nextAttractionId 設置為新景點的 ID
+            // Update the previous attraction to point to the new one
             await previousAttraction.update({ nextAttractionId: newAttraction.id });
         } else {
-            // 如果沒有前一個景點，表示插入的是第一個景點，更新 Day 的 startAttractionId
+            // If no previous attraction, this is the first one, update day
             await day.update({ startAttractionId: newAttraction.id });
+        }
+
+        // If there's a current attraction, update its reference to maintain the order
+        if (currentAttraction) {
+            await currentAttraction.update({ previousAttractionId: newAttraction.id });
         }
 
         return res.status(201).json({
@@ -603,33 +685,60 @@ export const createPlan = async (req, res) => {
     }
 }
 
-//  更新方案資料
+//  更新方案資料，未做
 export const updatePlan = async (req, res) => {
 
 }
 
-//  新增天數
-export const addDay = async (req, res) => {
-    const { planId, dayId } = req.body;
+//  取得某行程的所有Plan
+export const getPlan = async (req, res) => {
+    const tripId = req.params.id;
 
     try {
-        const prevDay = await Day.findByPk(dayId);
-        if (prevDay) {
-            const nextDay = await Day.create({
-                planId: planId,
-            })
+        const plansInfo = await Plan.findAll({ where: { tripId: tripId } });
 
-            prevDay.nextDayId = nextDay.id;
-            await prevDay.save();
-
-            return res.status(201).json({ status: "success", message: "An day had been added" });
-        } else {
-            return res.status(404).json({ status: "error", message: "Day not found" });
-        }
+        // Test 前端資料接收格式
+        let plans = plansInfo.map(plan => ({
+            id: plan.id,
+            userId: plan.tripId,
+            googlePlaceId: plan.startDayId
+        }));
+        return res.status(200).json({ status: "success", data: plans });
     } catch (error) {
         console.error(error);
         return res.status(500).json({ status: "error", message: "Internal server error" });
     }
+}
+
+//  新增天數or插入天數（為了加快速度，前端可以先省插入步驟）
+export const addDay = async (req, res) => {
+    const { planId, preDayId } = req.body;
+
+    try {
+        const prevDay = await Day.findByPk(preDayId);
+        if (!prevDay) {
+            return res.status(404).json({ status: "error", message: "Day not found" });
+        }
+
+        const nextDay = await Day.create({
+            planId: planId,
+            nextDayId: prevDay.nextDayId,   //  如果是插入天數就有值；若是加入至最後則為null
+        });
+
+        prevDay.nextDayId = nextDay.id;
+        await prevDay.save();
+
+        return res.status(201).json({ status: "success", message: "An day had been added" });
+
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ status: "error", message: "Internal server error" });
+    }
+}
+
+//  將某天對調（先省略，因為我覺得意義不大）
+export const changeDayBetween = async (req, res) => {
+
 }
 
 //  取得某Plan的所有DaysId，並回傳給前端，前端需要再用這些ID，當使用者點某一天時，拿這個ID去call後端拿attraction資料
@@ -673,8 +782,26 @@ export const getDay = async (req, res) => {
 }
 
 //  取得某Day的所有Attraction資料
+//  邏輯仍須修改，例如確認tripId? or planId
 export const getAttraction = async (req, res) => {
+    const { dayId } = req.body;
 
+    try {
+        const daysAttraction = await Attraction.findAll({ where: { dayId: dayId } });
+
+        // Test 前端資料接收格式
+        let attractions = daysAttraction.map(attra => ({
+            id: attra.id,
+            dayId: attra.dayId,
+            startAt: attra.startAt,
+            endAt: attra.endAt,
+            note: attra.note,
+            googlePlaceId: attra.googlePlaceId,
+            nextAttractionId: attra.newAttractionId || null,
+        }));
+        return res.status(200).json({ status: "success", data: attractions });
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ status: "error", message: "Internal server error" });
+    }
 }
-
-//  調換Day順序

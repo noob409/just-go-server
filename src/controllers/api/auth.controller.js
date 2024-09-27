@@ -77,7 +77,7 @@ export const login = async (req, res) => {
         console.error(error);
         return res.status(500).json({ status: "error", message: "Internal server error" });
     }
-}
+};
 
 // 註冊邏輯
 export const register = async (req, res) => {

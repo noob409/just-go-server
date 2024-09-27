@@ -1,24 +1,26 @@
 import { Router } from "express";
 import { upload } from "../../config/multer.js";
-import { validateFields } from "../../middlewares/validateFields.js";
-import { addPlaceCollection, createTrip, deleteTrip, favorTrip, popularTrips, searchTripById, deletePlaceCollection } from "../../controllers/api/trip.controller.js";
+import { validateBody, validateParams } from "../../middlewares/validateFields.js";
+import { addPlaceCollection, createTrip, deleteTrip, favorTrip, popularTrips, searchTripById, deletePlaceCollection, placeToPlan, getCollection, getPlan, getDay, getAttraction } from "../../controllers/api/trip.controller.js";
 
 const TripRouter = Router();
 
-TripRouter.get("/", popularTrips);
-TripRouter.post("/", validateFields(['userId', 'title', 'startTime', 'endTime']), upload.single('image'), createTrip);
+TripRouter.post("/collections", validateBody(['googlePlaceId']), addPlaceCollection);  // Test OK
+TripRouter.delete("/collections", validateBody(['googlePlaceId']), deletePlaceCollection);  // Test OK
+TripRouter.get("/collections", getCollection);  // Test Ok
 
-TripRouter.get("/:id", validateFields(['id']), searchTripById);
-TripRouter.post("/:id/favor", validateFields(['id']), favorTrip);
-TripRouter.delete("/:id", validateFields(['id']), deleteTrip);
+TripRouter.post("/:id/plan/addPlace", validateBody(['collectionId', 'planId', 'dayId', 'startAt', 'endAt', 'note']), placeToPlan);
 
-TripRouter.post("/collections", validateFields(['googlePlaceId']), addPlaceCollection);
-TripRouter.delete("/collections", validateFields(['googlePlaceId']), deletePlaceCollection);
+TripRouter.get("/", popularTrips);  // Test OK
+TripRouter.post("/", validateBody(['title', 'startTime', 'endTime']), upload.single('image'), createTrip);  // Test OK (照片上傳未測試)
 
-// // 獲取特定用戶的行程（共編）
-// TripRouter.get("/users/:id/own", ownTrip);
+TripRouter.get("/:id", validateParams(['id']), searchTripById);  // Test OK
+TripRouter.post("/:id/favor", validateParams(['id']), favorTrip);   // Test OK
+// TripRouter.delete("/:id", validateParams(['id']), deleteTrip);  // 刪除行程，意味著，所有與之相關的方案都要被刪除（待修改） Test Failed
 
-// // 獲取特定用戶的收藏行程
-// TripRouter.get("/users/:id/keep", keepTrip);
+TripRouter.post("/:id/plan/addPlace", validateBody(['collectionId', 'planId', 'dayId', 'startAt', 'endAt', 'note']), placeToPlan);
+TripRouter.get("/:id/plan", validateParams(['id']), getPlan);
+TripRouter.get("/:id/plan/days", validateBody(['planId']), getDay);
+TripRouter.get("/:id/plan/day/specificday", validateBody(['dayId']), getAttraction);
 
 export default TripRouter;

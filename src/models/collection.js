@@ -14,7 +14,7 @@ const Collection = sequelize.define("collection", {
     allowNull: false,
   },
   googlePlaceId: {
-    type: DataTypes.UUID,
+    type: DataTypes.STRING,
     allowNull: false,
   },
 });

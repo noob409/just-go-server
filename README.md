@@ -20,18 +20,11 @@
 
 ## 更改的部分
 
-`trip.controller`: 修改所有的function並新增建立行程、景點收藏功能，並建議將trip.ts loadTripsByMe的路由改成/api/trips/users/開頭
+`trip.controller`: 修改建立行程的部分，會初始化一個空的Plan - 行程在建立時，會初始化一個空的方案，方案內會再初始化一個空的Day，也就是該方案的第一天，這個Day會再初始化空一個attraction。
 
-`user.controller`: 修改avatar相關，目前測試可以正常向後端請求圖片，建議前端Vite.config的proxy新增下方程式碼，方可正常運行，解決方法：前端寫死domain name
+其他的部分請直接看trip.route.js，如果有測試過的會在那段程式碼後方加上 // Test OK，當然這也不全OK，因為我還沒詳細修改資料回傳的欄位(需討論)。
 
-```javascript
-"/uploads": {
-    target: "http://localhost:80",
-    changeOrigin: true,
-},
-```
-
-`trip.share.controller`: 新增 加入共編及更新的功能
+路由有的看起來會很奇怪，這很正常，因為得再修改，
 
 ## 待更改的部分
 
@@ -41,5 +34,3 @@
 
 第一次使用表單註冊的話，如果通過驗證信的話，爾後，google登入也會成功。
 但如果沒通過驗證信的話，且又使用google登入的話，我的想法是直接設定驗證通過就沒問題；如果又用表單註冊的話，應該就允許他重新註冊。
-
-`trip.controller`: 預計將修改建立行程的部分，會初始化一個空的Plan - 行程在建立時，會初始化一個空的方案，方案內會再初始化一個空的Day，也就是該方案的第一天，這個Day會再初始化空一個attraction。

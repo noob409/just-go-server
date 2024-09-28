@@ -382,7 +382,6 @@ export const createTrip = async (req, res) => {
         const endDate = new Date(endTime);
         let currentDate = new Date(startDate);
         const dayList = [];
-        console.log(startDate, endDate)
 
         while (currentDate <= endDate) {
             // 創建每一天的 Day
@@ -474,7 +473,10 @@ export const createTrip = async (req, res) => {
                     isLike: false,
                     isPublic: newTrip.isPublic,
                 },
-                dayList: dayList,
+                plan: {
+                    planId: defaultPlan.id,
+                    dayList: dayList,
+                }
             }
         });
     } catch (error) {
@@ -520,30 +522,39 @@ export const getTrip = async (req, res) => {
         }
 
         // Construct dayList and sort attractions
-        const dayList = await Promise.all(sortedDays.map(async (day) => {
-            const attrList = await Attraction.findAll({
-                where: { dayId: day.id },
-                order: [['startAt', 'ASC']], // Sort by startAt
-            });
+        const planList = await Promise.all(trip.plans.map(async (plan) => {
+            const sortedPlanDays = sortedDays.filter(day => day.planId === plan.id);
+
+            const dayList = await Promise.all(sortedPlanDays.map(async (day) => {
+                const attrList = await Attraction.findAll({
+                    where: { dayId: day.id },
+                    order: [['startAt', 'ASC']], // Sort by startAt
+                });
+
+                return {
+                    day: {
+                        id: day.id,
+                        planId: day.planId,
+                        startAttractionId: day.startAttractionId,
+                        nextDayId: day.nextDayId,
+                        createdAt: day.createdAt,
+                        updatedAt: day.updatedAt,
+                    },
+                    attrList: attrList.map(attr => ({
+                        id: attr.id,
+                        dayId: attr.dayId,
+                        startAt: attr.startAt,
+                        endAt: attr.endAt,
+                        note: attr.note,
+                        googlePlaceId: attr.googlePlaceId,
+                        nextAttractionId: attr.nextAttractionId
+                    }))
+                };
+            }));
 
             return {
-                day: {
-                    id: day.id,
-                    planId: day.planId,
-                    startAttractionId: day.startAttractionId,
-                    nextDayId: day.nextDayId,
-                    createdAt: day.createdAt,
-                    updatedAt: day.updatedAt,
-                },
-                attrList: attrList.map(attr => ({
-                    id: attr.id,
-                    dayId: attr.dayId,
-                    startAt: attr.startAt,
-                    endAt: attr.endAt,
-                    note: attr.note,
-                    googlePlaceId: attr.googlePlaceId,
-                    nextAttractionId: attr.nextAttractionId
-                }))
+                planId: plan.id,
+                dayList: dayList
             };
         }));
 
@@ -568,7 +579,7 @@ export const getTrip = async (req, res) => {
                     isLike: false, // Update based on user likes if necessary
                     isPublic: trip.isPublic,
                 },
-                dayList: dayList,
+                planList: planList, // Return plans with dayList
             }
         });
     } catch (error) {
@@ -738,6 +749,7 @@ export const placeToPlan = async (req, res) => {
             await currentAttraction.update({ previousAttractionId: newAttraction.id });
         }
 
+        // 避免最後一個attraction的nextAttractionId設定為currentAttraction.id，因為在newAttraction會先設定，兒這邊會重新確認是否為最後
         if ((currentAttraction.nextAttractionId === newAttraction.id) && (newAttraction.nextAttractionId === currentAttraction.id)) {
             await newAttraction.update({ nextAttractionId: null })
         }

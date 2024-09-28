@@ -7,9 +7,9 @@ import { emailQueue } from "../../utils/emailUtils.js";
 // Google登入邏輯
 export const googleLogin = async (req, res) => {
     try {
-        const { code } = req.body;
+        const { token } = req.body;
 
-        const userInfo = await getGoogleInfo(code);
+        const userInfo = await getGoogleInfo(token);
 
         if (!userInfo) {
             return res.status(401).json({ status: "error", message: "Invalid Google token" });
@@ -27,7 +27,7 @@ export const googleLogin = async (req, res) => {
 
         return res.status(200).json({
             status: "success",
-            user: {
+            data: {
                 id: user.id,
                 name: user.username,
                 email: user.email,
@@ -77,7 +77,7 @@ export const login = async (req, res) => {
         console.error(error);
         return res.status(500).json({ status: "error", message: "Internal server error" });
     }
-}
+};
 
 // 註冊邏輯
 export const register = async (req, res) => {

@@ -3,10 +3,15 @@
 import { Router } from "express";
 import { upload } from "../../config/multer.js";
 import { profileChange, userInfo } from "../../controllers/api/user.controller.js";
+import { keepTrip, ownTrip } from "../../controllers/api/user.trip.controller.js";
+import { validateBody } from "../../middlewares/validateFields.js";
 
 const UserRouter = Router();
 
-UserRouter.put('/:id', upload.single('avatar'), profileChange);
-UserRouter.get('/:id', userInfo);
+UserRouter.put("/:id", validateBody(['name']), upload.single('avatar'), profileChange);
+UserRouter.get("/:id", userInfo);
+
+UserRouter.get("/:id/trip/own", ownTrip);
+UserRouter.get("/:id/trip/keep", keepTrip);
 
 export default UserRouter;

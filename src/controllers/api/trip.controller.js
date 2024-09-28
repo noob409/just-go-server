@@ -833,7 +833,6 @@ export const getPlan = async (req, res) => {
         // Test 前端資料接收格式
         let plans = plansInfo.map(plan => ({
             id: plan.id,
-            userId: plan.tripId,
             startDayId: plan.startDayId
         }));
         return res.status(200).json({ status: "success", data: plans });

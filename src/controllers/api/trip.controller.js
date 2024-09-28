@@ -2,12 +2,15 @@ import Collection from "../../models/collection.js";
 import Trip from "../../models/trip.js";
 import TripLike from "../../models/trip_like.js";
 import TripShare from "../../models/trip_share.js";
+import User from "../../models/user.js";
 import Plan from "../../models/plan.js";
 import Day from "../../models/day.js";
 import Attraction from "../../models/attraction.js";
 import { checkRequiredFields } from "../../utils/checkRequirdFieldsUtils.js";
 
 import Sequelize from "sequelize";
+
+{/* 週六、修好placeToPlan & getTrip */ }
 
 //  行程管理 - 我的行程
 // export const ownTrip = async (req, res) => {
@@ -379,6 +382,7 @@ export const createTrip = async (req, res) => {
         const endDate = new Date(endTime);
         let currentDate = new Date(startDate);
         const dayList = [];
+        console.log(startDate, endDate)
 
         while (currentDate <= endDate) {
             // 創建每一天的 Day
@@ -479,10 +483,99 @@ export const createTrip = async (req, res) => {
     }
 }
 
-//  取得行程資料
+//  取得行程資料(回傳欄位待修改)
 export const getTrip = async (req, res) => {
+    const tripId = req.params.id;
 
-}
+    try {
+        // Fetch trip with all plans and associated days
+        const trip = await Trip.findByPk(tripId, {
+            include: [
+                { model: User, as: 'user', attributes: ['id', 'username', 'avatar'] },
+                { model: Plan, as: 'plans', include: [{ model: Day, as: 'days', include: [{ model: Attraction, as: 'attractions' }] }] }
+            ]
+        });
+
+        if (!trip) {
+            return res.status(404).json({ status: "error", message: "Trip not found" });
+        }
+
+        // Flatten days from all plans
+        let allDays = trip.plans.reduce((acc, plan) => {
+            return acc.concat(plan.days);
+        }, []);
+
+        // Find all used nextDayIds
+        const usedNextDayIds = new Set(allDays.map(day => day.nextDayId).filter(id => id !== null));
+
+        // Find the first day (not used in nextDayId and nextDayId is not null)
+        let currentDay = allDays.find(day => !usedNextDayIds.has(day.id) && day.nextDayId !== null);
+
+        // Sort days based on nextDayId
+        let sortedDays = [];
+
+        while (currentDay) {
+            sortedDays.push(currentDay);
+            currentDay = allDays.find(day => day.id === currentDay.nextDayId); // Find the next day
+        }
+
+        // Construct dayList and sort attractions
+        const dayList = await Promise.all(sortedDays.map(async (day) => {
+            const attrList = await Attraction.findAll({
+                where: { dayId: day.id },
+                order: [['startAt', 'ASC']], // Sort by startAt
+            });
+
+            return {
+                day: {
+                    id: day.id,
+                    planId: day.planId,
+                    startAttractionId: day.startAttractionId,
+                    nextDayId: day.nextDayId,
+                    createdAt: day.createdAt,
+                    updatedAt: day.updatedAt,
+                },
+                attrList: attrList.map(attr => ({
+                    id: attr.id,
+                    dayId: attr.dayId,
+                    startAt: attr.startAt,
+                    endAt: attr.endAt,
+                    note: attr.note,
+                    googlePlaceId: attr.googlePlaceId,
+                    nextAttractionId: attr.nextAttractionId
+                }))
+            };
+        }));
+
+        // Return data
+        return res.status(200).json({
+            status: "success",
+            data: {
+                tripInfo: {
+                    id: trip.id,
+                    user: {
+                        id: trip.user.id,
+                        name: trip.user.username, // Change to username for consistency
+                        avatar: trip.user.avatar,
+                    },
+                    userId: trip.userId,
+                    title: trip.tripName,
+                    image: trip.image,
+                    day: sortedDays.length, // Updated to reflect all sorted days
+                    publishDay: trip.publicAt,
+                    labels: trip.label || [],
+                    like: trip.likeCount,
+                    isLike: false, // Update based on user likes if necessary
+                    isPublic: trip.isPublic,
+                },
+                dayList: dayList,
+            }
+        });
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ status: "error", message: "Internal server error" });
+    }
+};
 
 //  更新行程資訊
 export const updateTripInfo = async (req, res) => {
@@ -561,9 +654,10 @@ export const getCollection = async (req, res) => {
 }
 
 //  把景點加入方案的邏輯
-//  如果該天的景點是空的、插在最後面或最前面、插在中間，那如何得知前一筆是否存在
+//  如果該天的景點是空的、插在最後面或最前面、插在中間，那如何得知前一筆是否存在OK
+//  加入plan會有，排序問題、若是有兩個開始時間一樣的景點該如何處理?(後端不想處理此問題)
 //  這邊需要新增一個 如果tripId !== plan.tripId則報錯
-//  插入順序沒有重排、nextAttraction也沒有加上
+//  插入順序沒有重排、nextAttraction & startAttraction (day and attraction)也沒有順勢修改OK
 export const placeToPlan = async (req, res) => {
     const { collectionId, planId, dayId, startAt, endAt, note } = req.body;
 
@@ -584,21 +678,43 @@ export const placeToPlan = async (req, res) => {
             return res.status(400).json({ status: "error", message: "Day does not belong to the specified plan" });
         }
 
-        // 先找到插入位置
-        let previousAttraction = null;
+        // 查找初始化的 Attraction (即只有 id 和 dayId 存在，其他欄位為空)
         let currentAttraction = await Attraction.findByPk(day.startAttractionId);
-        
-        // Loop through attractions to find the correct insert position
-        while (currentAttraction && new Date(currentAttraction.startAt) < new Date(startAt)) {
+
+        if (!currentAttraction) {
+            return res.status(404).json({ status: "error", message: "No attraction found for this day" });
+        }
+
+        // 檢查初始化的 attraction 是否為空景點（即檢查 googlePlaceId 或 startAt 等欄位是否為空）
+        if (!currentAttraction.googlePlaceId && !currentAttraction.startAt) {
+            // 覆蓋空景點
+            await currentAttraction.update({
+                startAt: startAt,
+                endAt: endAt,
+                note: note || null,
+                googlePlaceId: collectionToBeAdded.googlePlaceId
+            });
+
+            return res.status(200).json({
+                status: "success",
+                data: currentAttraction,
+                message: "Empty attraction has been overwritten"
+            });
+        }
+
+        // 找到插入位置，開始遍歷 attraction 鏈表
+        let previousAttraction = null;
+
+        while (currentAttraction && (new Date(currentAttraction.startAt) < new Date(startAt))) {
             previousAttraction = currentAttraction;
             if (currentAttraction.nextAttractionId) {
                 currentAttraction = await Attraction.findByPk(currentAttraction.nextAttractionId);
             } else {
-                break; // No more attractions to compare
+                break; // 沒有更多的景點了
             }
         }
 
-        // Create the new attraction
+        // 創建新景點
         const newAttraction = await Attraction.create({
             dayId: dayId,
             startAt: startAt,
@@ -608,17 +724,22 @@ export const placeToPlan = async (req, res) => {
             nextAttractionId: currentAttraction ? currentAttraction.id : null,
         });
 
-        if (previousAttraction) {
-            // Update the previous attraction to point to the new one
-            await previousAttraction.update({ nextAttractionId: newAttraction.id });
-        } else {
-            // If no previous attraction, this is the first one, update day
+        // After creating new attraction
+        if (!previousAttraction) {
+            // If there are no previous attractions, this new attraction becomes the first
             await day.update({ startAttractionId: newAttraction.id });
+        } else {
+            // Link the new attraction to the previous attraction
+            await previousAttraction.update({ nextAttractionId: newAttraction.id });
         }
 
-        // If there's a current attraction, update its reference to maintain the order
         if (currentAttraction) {
+            // Link the current attraction back to the new attraction
             await currentAttraction.update({ previousAttractionId: newAttraction.id });
+        }
+
+        if ((currentAttraction.nextAttractionId === newAttraction.id) && (newAttraction.nextAttractionId === currentAttraction.id)) {
+            await newAttraction.update({ nextAttractionId: null })
         }
 
         return res.status(201).json({
@@ -701,7 +822,7 @@ export const getPlan = async (req, res) => {
         let plans = plansInfo.map(plan => ({
             id: plan.id,
             userId: plan.tripId,
-            googlePlaceId: plan.startDayId
+            startDayId: plan.startDayId
         }));
         return res.status(200).json({ status: "success", data: plans });
     } catch (error) {
@@ -787,7 +908,7 @@ export const getAttraction = async (req, res) => {
     const { dayId } = req.body;
 
     try {
-        const daysAttraction = await Attraction.findAll({ where: { dayId: dayId } });
+        const daysAttraction = await Attraction.findAll({ where: { dayId: dayId }, order: [['startAt', 'ASC']] });
 
         // Test 前端資料接收格式
         let attractions = daysAttraction.map(attra => ({
@@ -797,7 +918,7 @@ export const getAttraction = async (req, res) => {
             endAt: attra.endAt,
             note: attra.note,
             googlePlaceId: attra.googlePlaceId,
-            nextAttractionId: attra.newAttractionId || null,
+            nextAttractionId: attra.nextAttractionId || null,
         }));
         return res.status(200).json({ status: "success", data: attractions });
     } catch (error) {

@@ -13,6 +13,7 @@ const Day = sequelize.define("day", {
   planId: {
     type: DataTypes.UUID,
     allowNull: false,
+    onDelete: "CASCADE"
   },
   startAttractionId: {
     type: DataTypes.UUID,
@@ -23,8 +24,8 @@ const Day = sequelize.define("day", {
 });
 
 export const associate = () => {
-    Day.belongsTo(Plan, { foreignKey: "planId" });
-    Day.hasMany(Attraction, { foreignKey: "dayId" });
+    Day.belongsTo(Plan, { foreignKey: "planId", onDelete: "CASCADE" });
+    Day.hasMany(Attraction, { foreignKey: "dayId", onDelete: "CASCADE" });
 };
 
 export default Day;

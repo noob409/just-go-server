@@ -31,7 +31,7 @@ const Attraction = sequelize.define("attraction", {
 });
 
 export const associate = () => {
-  Attraction.belongsTo(Day, { foreignKey: "dayId" });
+  Attraction.belongsTo(Day, { foreignKey: "dayId", onDelete: "CASCADE" });
 };
 
 export default Attraction;

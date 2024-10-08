@@ -62,10 +62,10 @@ const Trip = sequelize.define("trip", {
 
 export const associate = () => {
   Trip.belongsTo(User, { foreignKey: "userId" });
-  Trip.belongsTo(Plan, { foreignKey: "finalPlanId" });
-  Trip.hasMany(Plan, { foreignKey: "tripId" });
-  Trip.hasMany(TripLike, { foreignKey: "tripId" });
-  Trip.hasMany(TripShare, { foreignKey: "tripId" });
+  Trip.belongsTo(Plan, { foreignKey: "finalPlanId", onDelete: "CASCADE" });
+  Trip.hasMany(Plan, { foreignKey: "tripId", onDelete: "CASCADE" });
+  Trip.hasMany(TripLike, { foreignKey: "tripId", onDelete: "CASCADE" });
+  Trip.hasMany(TripShare, { foreignKey: "tripId", onDelete: "CASCADE" });
 };
 
 export default Trip;

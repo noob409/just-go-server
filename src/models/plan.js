@@ -27,8 +27,8 @@ const Plan = sequelize.define("plan", {
 });
 
 export const associate = () => {
-    Plan.belongsTo(Trip, { foreignKey: "tripId" });
-    Plan.hasMany(Day, { foreignKey: "planId" });
+    Plan.belongsTo(Trip, { foreignKey: "tripId", onDelete: "CASCADE" });
+    Plan.hasMany(Day, { foreignKey: "planId", onDelete: "CASCADE" });
 };
 
 export default Plan;

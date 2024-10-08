@@ -29,7 +29,7 @@ const TripShare = sequelize.define("trip_share", {
 
 export const associate = () => {
   TripShare.belongsTo(User, { foreignKey: "userId" });
-  TripShare.belongsTo(Trip, { foreignKey: "tripId" });
+  TripShare.belongsTo(Trip, { foreignKey: "tripId", onDelete: "CASCADE" });
 };
 
 export default TripShare;

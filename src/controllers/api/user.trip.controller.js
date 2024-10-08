@@ -1,4 +1,3 @@
-// /api/users/${id}/trip/ 然後我之後會把它改成三個分頁，分別是我的行程、與我共編、我的收藏
 import Sequelize from "sequelize";
 
 import TripShare from "../../models/trip_share.js";
@@ -38,7 +37,7 @@ export const ownTrip = async (req, res) => {
                 const departureDate = new Date(trip.departureDate);
                 const endDate = new Date(trip.endDate);
                 const timeDifference = endDate - departureDate; // 時間差（毫秒）
-                const dayDifference = Math.ceil(timeDifference / (1000 * 3600 * 24)); // 轉換為天數
+                const dayDifference = Math.ceil(timeDifference / (1000 * 3600 * 24)) + 1; // 轉換為天數
 
                 return {
                     id: trip.id,

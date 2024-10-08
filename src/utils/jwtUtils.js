@@ -16,7 +16,7 @@ export const verifyToken = (req, res, next) => {
     return res.status(401).json({ error: 'Access denied' });
   }
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const decoded = jwt.verify(token, JWT_SECRET); // 檢查是否正確使用 JWT_SECRET
     req.userId = decoded.id;
     next();
   } catch (error) {
@@ -26,9 +26,4 @@ export const verifyToken = (req, res, next) => {
       res.status(401).json({ error: 'Invalid token' });
     }
   }
-  // try {
-  //   return jwt.verify(token, JWT_SECRET);
-  // } catch (error) {
-  //   return null;
-  // }
 };

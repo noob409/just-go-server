@@ -1,5 +1,3 @@
-import e from "cors";
-
 // Body欄位檢查 Middleware
 export const validateBody = (requiredFields) => {
     return (req, res, next) => {
@@ -11,7 +9,6 @@ export const validateBody = (requiredFields) => {
                 missingFields.add(field);
             }
         }
-
 
         // 如果有缺失的欄位，返回錯誤
         if (missingFields.size > 0) {

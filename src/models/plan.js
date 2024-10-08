@@ -16,6 +16,13 @@ const Plan = sequelize.define("plan", {
   },
   startDayId: {
     type: DataTypes.UUID,
+  },
+  name: {
+    type: DataTypes.STRING,
+  },
+  isFinal: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: false
   }
 });
 

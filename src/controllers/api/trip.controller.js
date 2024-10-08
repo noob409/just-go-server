@@ -30,7 +30,7 @@ export const popularTrips = async (req, res) => {
             const departureDate = new Date(trip.departureDate);
             const endDate = new Date(trip.endDate);
             const timeDifference = endDate - departureDate; // 時間差（毫秒）
-            const dayDifference = Math.ceil(timeDifference / (1000 * 3600 * 24)); // 轉換為天數
+            const dayDifference = Math.ceil(timeDifference / (1000 * 3600 * 24)) + 1; // 轉換為天數
 
             return {
                 id: trip.id,
@@ -143,6 +143,52 @@ export const deleteTrip = async (req, res) => {
     const tripId = req.params.id;
 
     try {
+        // const isTripExist = await Trip.findByPk(tripId);
+
+        // if (!isTripExist) {
+        //     // 行程不存在
+        //     return res.status(404).json({ status: "error", message: "Trip Not Found" });
+        // }
+
+        // // 確認行程是否屬於當前使用者
+        // if (isTripExist.userId !== userId) {
+        //     // 使用者無權限刪除別人的行程
+        //     return res.status(403).json({ status: "error", message: "You are not allowing to delete this trip." });
+        // }
+
+        // // Set the finalPlanId to null to remove foreign key reference
+        // await Trip.update(
+        //     { finalPlanId: null },
+        //     { where: { id: tripId } }
+        // );
+
+        // // 刪除與該行程相關的資料
+        // // 刪除與該行程相關的 TripShare 和 TripLike 記錄
+        // await TripShare.destroy({ where: { tripId: tripId } });
+        // await TripLike.destroy({ where: { tripId: tripId } });
+
+        // // 刪除與該行程相關的所有 Plan 及其相關的 Day 和 Attraction
+        // const plans = await Plan.findAll({ where: { tripId: tripId } });
+
+        // for (const plan of plans) {
+        //     const days = await Day.findAll({ where: { planId: plan.id } });
+
+        //     // 刪除每個 Day 對應的 Attraction
+        //     for (const day of days) {
+        //         await Attraction.destroy({ where: { dayId: day.id } });
+        //     }
+
+        //     // 刪除 Day
+        //     await Day.destroy({ where: { planId: plan.id } });
+        // }
+
+        // // 刪除 Plan
+        // await Plan.destroy({ where: { tripId: tripId } });
+
+        // // 最後，刪除 Trip 本身
+        // await isTripExist.destroy();
+
+        // return res.status(200).json({ status: "success", message: "The trip and all related data have been deleted." });
         const isTripExist = await Trip.findByPk(tripId);
 
         if (!isTripExist) {
@@ -153,39 +199,10 @@ export const deleteTrip = async (req, res) => {
         // 確認行程是否屬於當前使用者
         if (isTripExist.userId !== userId) {
             // 使用者無權限刪除別人的行程
-            return res.status(403).json({ status: "error", message: "You are not allowing to delete this trip." });
+            return res.status(403).json({ status: "error", message: "You are not allowed to delete this trip." });
         }
 
-        // Set the finalPlanId to null to remove foreign key reference
-        await Trip.update(
-            { finalPlanId: null },
-            { where: { id: tripId } }
-        );
-
-        // 刪除與該行程相關的資料
-        // 刪除與該行程相關的 TripShare 和 TripLike 記錄
-        await TripShare.destroy({ where: { tripId: tripId } });
-        await TripLike.destroy({ where: { tripId: tripId } });
-
-        // 刪除與該行程相關的所有 Plan 及其相關的 Day 和 Attraction
-        const plans = await Plan.findAll({ where: { tripId: tripId } });
-
-        for (const plan of plans) {
-            const days = await Day.findAll({ where: { planId: plan.id } });
-
-            // 刪除每個 Day 對應的 Attraction
-            for (const day of days) {
-                await Attraction.destroy({ where: { dayId: day.id } });
-            }
-
-            // 刪除 Day
-            await Day.destroy({ where: { planId: plan.id } });
-        }
-
-        // 刪除 Plan
-        await Plan.destroy({ where: { tripId: tripId } });
-
-        // 最後，刪除 Trip 本身
+        // 刪除 Trip 本身，並自動刪除相關的 TripShare, TripLike, Plan, Day, and Attraction
         await isTripExist.destroy();
 
         return res.status(200).json({ status: "success", message: "The trip and all related data have been deleted." });

@@ -5,7 +5,7 @@ import {
     addPlaceCollection, createTrip, deleteTrip, favorTrip, popularTrips, searchTripById, deletePlaceCollection,
     placeToPlan, getCollection, getPlan, getDay, getAttraction, getTrip, createPlan
 } from "../../controllers/api/trip.controller.js";
-import { coEditTripPermission } from "../../controllers/api/trip.share.controller.js";
+import { coEditTripPermission, deleteCoEditTripPermission } from "../../controllers/api/trip.share.controller.js";
 
 const TripRouter = Router();
 
@@ -18,9 +18,10 @@ TripRouter.post("/", validateBody(['name', 'startTime', 'endTime']), upload.sing
 
 TripRouter.get("/:id", validateParams(['id']), searchTripById);  // Test OK
 TripRouter.delete("/:id", validateParams(['id']), deleteTrip);  // Test OK
-TripRouter.post("/:id/favor", validateParams(['id']), favorTrip);   // Test OK
+TripRouter.post("/:id/favor", validateParams(['id']), favorTrip);  // Test OK
 TripRouter.get("/:id/details", validateParams(['id']), getTrip);  // Test OK
 TripRouter.post("/:id/share", validateParams(['id']), validateBody(['linkPermission']), coEditTripPermission);
+TripRouter.delete("/:id/share", validateParams(['id']), validateBody(['deleteUserId']), deleteCoEditTripPermission);
 
 TripRouter.post("/:id/plan/addplace", validateBody(['collectionId', 'planId', 'dayId', 'startAt', 'endAt', 'note']), validateParams(['id']), placeToPlan);  // 目前測試OK，但如果同一天有好多個景點時間相同，則順序會錯亂
 TripRouter.post("/:id/plan", validateParams(['id']), validateBody(['name', 'startAt', 'endAt']), createPlan);  // Test OK

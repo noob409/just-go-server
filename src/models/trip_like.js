@@ -24,7 +24,7 @@ const TripLike = sequelize.define("trip_like", {
 
 export const associate = () => {
     TripLike.belongsTo(User, { foreignKey: "userId" });
-    TripLike.belongsTo(Trip, { foreignKey: "tripId" });
+    TripLike.belongsTo(Trip, { foreignKey: "tripId", onDelete: "CASCADE" });
 };
 
 export default TripLike;

@@ -10,7 +10,8 @@ import Attraction from "../../models/attraction.js";
 import Sequelize from "sequelize";
 
 {/*Attraction還要存place基本的資訊，例如 name, rating, phoneNumber, address
-    UUID如果被改掉會報錯，要做驗證? */ }
+    UUID如果被改掉會報錯，要做驗證?
+    回傳計算天數的部分，應該可以直接存在trip.day */ }
 
 //  首頁 - 熱門行程，目前以點讚數遞減傳回。
 //  檢查isPublic，如果是false則不用傳回
@@ -24,20 +25,29 @@ export const popularTrips = async (req, res) => {
             order: [["likeCount", "DESC"]],
         });
 
-        popularTrips = tripDataAll.map(trip => ({
-            id: trip.id,
-            userId: trip.userId,
-            title: trip.tripName,
-            image: trip.image,
-            finalPlanId: trip.finalPlanId,
-            departureDate: trip.departureDate,
-            endDate: trip.endDate,
-            linkPermission: trip.linkPermission,
-            isPublic: trip.isPublic,
-            publishDay: trip.publicAt,
-            like: trip.likeCount,
-            labels: trip.label || [],
-        }));
+        popularTrips = tripDataAll.map(trip => {
+            // 計算天數
+            const departureDate = new Date(trip.departureDate);
+            const endDate = new Date(trip.endDate);
+            const timeDifference = endDate - departureDate; // 時間差（毫秒）
+            const dayDifference = Math.ceil(timeDifference / (1000 * 3600 * 24)); // 轉換為天數
+
+            return {
+                id: trip.id,
+                userId: trip.userId,
+                title: trip.tripName,
+                image: trip.image,
+                finalPlanId: trip.finalPlanId,
+                departureDate: trip.departureDate,
+                endDate: trip.endDate,
+                day: dayDifference,
+                linkPermission: trip.linkPermission,
+                isPublic: trip.isPublic,
+                publishDay: trip.publicAt,
+                like: trip.likeCount,
+                labels: trip.label || [],
+            };
+        });
         return res.status(200).json({ status: "success", data: popularTrips });
     } catch (error) {
         console.error(error);
@@ -146,6 +156,12 @@ export const deleteTrip = async (req, res) => {
             return res.status(403).json({ status: "error", message: "You are not allowing to delete this trip." });
         }
 
+        // Set the finalPlanId to null to remove foreign key reference
+        await Trip.update(
+            { finalPlanId: null },
+            { where: { id: tripId } }
+        );
+
         // 刪除與該行程相關的資料
         // 刪除與該行程相關的 TripShare 和 TripLike 記錄
         await TripShare.destroy({ where: { tripId: tripId } });
@@ -205,6 +221,9 @@ export const createTrip = async (req, res) => {
         const defaultPlan = await Plan.create({
             tripId: newTrip.id,
         });
+
+        newTrip.finalPlanId = defaultPlan.id;
+        await newTrip.save();
 
         // 初始化天數：根據開始日和結束日動態生成
         let prevDay = null;
@@ -282,7 +301,7 @@ export const createTrip = async (req, res) => {
                     userId: newTrip.userId,
                     title: newTrip.tripName,
                     image: newTrip.image,
-                    finalPlanId: defaultPlan.id,  // 創建行程，先預設產生的方案是finalPlan
+                    finalPlanId: newTrip.finalPlanId,  // 創建行程，先預設產生的方案是finalPlan
                     departureDate: newTrip.departureDate,
                     ndDate: newTrip.endDate,
                     linkPermission: newTrip.linkPermission,
@@ -414,12 +433,15 @@ export const createTrip = async (req, res) => {
 // };
 
 //  取得行程資料，目前測試OK
-//  需要判斷共編權限
+//  核心的功能
 export const getTrip = async (req, res) => {
     const tripId = req.params.id;
     const userId = req.userId;
 
     try {
+        // call這個getTrip時，會傳回使用者的permission，然後前端判斷是否有權限編輯或是檢視
+        const editPermission = await TripShare.findOne({ where: { userId: userId, tripId: tripId } });
+
         // Fetch trip with all plans and associated days
         const trip = await Trip.findByPk(tripId, {
             include: [
@@ -514,6 +536,7 @@ export const getTrip = async (req, res) => {
                     like: trip.likeCount,
                     labels: trip.label || [],
                     isPublic: trip.isPublic,
+                    personalEditPermission: editPermission.permission,
                 },
                 planList: planList, // Return plans with dayList
             }
@@ -523,7 +546,6 @@ export const getTrip = async (req, res) => {
         return res.status(500).json({ status: "error", message: "Internal server error" });
     }
 };
-
 
 //  更新行程資訊，未實作
 export const updateTripInfo = async (req, res) => {

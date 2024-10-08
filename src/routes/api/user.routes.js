@@ -11,8 +11,8 @@ const UserRouter = Router();
 UserRouter.put("/:id", validateBody(['name']), upload.single('avatar'), profileChange);
 UserRouter.get("/:id", userInfo);
 
-UserRouter.get("/:id/trip/own", ownTrip);
-UserRouter.get("/:id/trip/coedit", coTrip);
-UserRouter.get("/:id/trip/keep", keepTrip);
+UserRouter.get("/:id/trips/own", ownTrip);
+UserRouter.get("/:id/trips/coedit", coTrip);
+UserRouter.get("/:id/trips/keep", keepTrip);
 
 export default UserRouter;

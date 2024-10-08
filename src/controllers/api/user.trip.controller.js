@@ -3,8 +3,9 @@ import Sequelize from "sequelize";
 
 import TripShare from "../../models/trip_share.js";
 import Trip from "../../models/trip.js";
+import TripLike from "../../models/trip_like.js";
 
-
+//  回傳計算天數的部分，應該可以直接存在trip.day
 //  行程管理 - 我的行程
 export const ownTrip = async (req, res) => {
     const userId = req.userId;
@@ -18,20 +19,43 @@ export const ownTrip = async (req, res) => {
             }
         });
         if (tripDataAll.length > 0) {
-            ownData = tripDataAll.map(trip => ({
-                id: trip.id,
-                userId: trip.userId,
-                title: trip.tripName,
-                image: trip.image,
-                finalPlanId: trip.finalPlanId,
-                departureDate: trip.departureDate,
-                endDate: trip.endDate,
-                linkPermission: trip.linkPermission,
-                isPublic: trip.isPublic,
-                publishDay: trip.publicAt,
-                like: trip.likeCount,
-                labels: trip.label || [],
-            }));
+            // ownData = tripDataAll.map(trip => ({
+            //     id: trip.id,
+            //     userId: trip.userId,
+            //     title: trip.tripName,
+            //     image: trip.image,
+            //     finalPlanId: trip.finalPlanId,
+            //     departureDate: trip.departureDate,
+            //     endDate: trip.endDate,
+            //     linkPermission: trip.linkPermission,
+            //     isPublic: trip.isPublic,
+            //     publishDay: trip.publicAt,
+            //     like: trip.likeCount,
+            //     labels: trip.label || [],
+            // }));
+            ownData = tripDataAll.map(trip => {
+                // 計算天數
+                const departureDate = new Date(trip.departureDate);
+                const endDate = new Date(trip.endDate);
+                const timeDifference = endDate - departureDate; // 時間差（毫秒）
+                const dayDifference = Math.ceil(timeDifference / (1000 * 3600 * 24)); // 轉換為天數
+
+                return {
+                    id: trip.id,
+                    userId: trip.userId,
+                    title: trip.tripName,
+                    image: trip.image,
+                    finalPlanId: trip.finalPlanId,
+                    departureDate: trip.departureDate,
+                    endDate: trip.endDate,
+                    day: dayDifference, // 新增計算出的天數
+                    linkPermission: trip.linkPermission,
+                    isPublic: trip.isPublic,
+                    publishDay: trip.publicAt,
+                    like: trip.likeCount,
+                    labels: trip.label || [],
+                };
+            });
         }
 
         return res.status(200).json({ status: "success", data: ownData });

@@ -1,6 +1,6 @@
 import User from "../../models/user.js";
 import { hashValue, compareValue } from "../../utils/hashUtils.js";
-import { generateToken, verifyToken } from "../../utils/jwtUtils.js";
+import { generateToken, verifyEmailToken } from "../../utils/jwtUtils.js";
 import { getGoogleInfo } from "../../utils/googleUtils.js";
 import { emailQueue } from "../../utils/emailUtils.js";
 
@@ -135,7 +135,7 @@ export const verifyEmail = async (req, res) => {
     try {
         const token = req.params.token;
 
-        const decodedToken = verifyToken(token);
+        const decodedToken = verifyEmailToken(token);
 
         if (!decodedToken) {
             return res.status(400).json({ status: "error", message: "Invalid token" });

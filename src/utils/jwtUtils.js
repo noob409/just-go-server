@@ -10,22 +10,10 @@ export const generateToken = (userId) => {
 };
 
 // 驗證 JWT Token
-export const verifyToken = (req, res, next) => {
-  // const token = req.header('Authorization')?.replace('Bearer ', '');
-  const token = req.headers.authorization.split(' ')[1].replace(/"/g, '');
-  if (!token) {
-    return res.status(401).json({ error: 'Access denied' });
-  }
+export const verifyToken = (token) => {
   try {
-    const decoded = jwt.verify(token, JWT_SECRET); // 檢查是否正確使用 JWT_SECRET
-    req.userId = decoded.id;
-    next();
+    return jwt.verify(token, JWT_SECRET);
   } catch (error) {
-    console.error("Token verification error:", error); // 紀錄錯誤信息
-    if (error.name === 'TokenExpiredError') {
-      res.status(401).json({ error: 'Token expired' });
-    } else {
-      res.status(401).json({ error: 'Invalid token' });
-    }
+    return null;
   }
 };

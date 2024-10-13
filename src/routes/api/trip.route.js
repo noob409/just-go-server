@@ -14,7 +14,7 @@ TripRouter.delete("/collections", validateBody(['googlePlaceId']), deletePlaceCo
 TripRouter.get("/collections", getCollection);  // Test OK
 
 TripRouter.get("/", popularTrips);  // Test OK
-TripRouter.post("/", validateBody(['name', 'startTime', 'endTime']), upload.single('image'), createTrip);  // Test OK (照片上傳未測試)
+TripRouter.post("/", upload.single('image'), validateBody(['name', 'startTime', 'endTime']), createTrip);  // Test OK (照片上傳未測試)
 
 TripRouter.get("/:id", validateParams(['id']), searchTripById);  // Test OK
 TripRouter.delete("/:id", validateParams(['id']), deleteTrip);  // Test OK

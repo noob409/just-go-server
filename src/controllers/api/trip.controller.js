@@ -222,7 +222,7 @@ export const createTrip = async (req, res) => {
         let tripAvatarPath = null;
 
         if (tripAvatar) {
-            tripAvatarPath = `/uploads/trips/${avatarFile.filename}`;
+            tripAvatarPath = `/uploads/trips/${tripAvatar.filename}`;
         }
 
         const newTrip = await Trip.create({

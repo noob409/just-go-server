@@ -8,7 +8,7 @@ import { validateBody } from "../../middlewares/validateFields.js";
 
 const UserRouter = Router();
 
-UserRouter.put("/:id", validateBody(['name']), upload.single('avatar'), profileChange);
+UserRouter.put("/:id", upload.single('avatar'), validateBody(['name']), profileChange);
 UserRouter.get("/:id", userInfo);
 
 UserRouter.get("/:id/trips/own", ownTrip);

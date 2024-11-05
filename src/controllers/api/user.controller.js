@@ -4,11 +4,16 @@ import { checkRequiredFields } from "../../utils/checkRequirdFieldsUtils.js";
 
 // 個人頁面更改邏輯
 export const profileChange = async (req, res) => {
-    const userId = req.params.id;
+    const checkedUserId = req.params.id;
+    const userId = req.userId;
     const { name } = req.body;
     const avatarFile = req.file;    //  can be null
 
     try {
+        if (userId !== checkedUserId) {
+            return res.status(403).json({status: "error", message: "forbidden to change other userInfo"});
+        }
+        
         let avatarPath = null;
         const userToBeChanged = await User.findByPk(userId);
 

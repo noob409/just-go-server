@@ -134,17 +134,20 @@ export const register = async (req, res) => {
 export const verifyEmail = async (req, res) => {
     try {
         const token = req.params.token;
+        if(!token) {
+            return res.status(400).json({ status: "error", message: "token not found"});
+        }
 
         const decodedToken = verifyToken(token);
 
         if (!decodedToken) {
-            return res.status(400).json({ status: "error", message: "Invalid token" });
+            return res.status(401).json({ status: "error", message: "Invalid token" });
         }
 
         const user = await User.findByPk(decodedToken.id);
 
         if (!user) {
-            return res.status(400).json({ status: "error", message: "Invalid token" });
+            return res.status(401).json({ status: "error", message: "Invalid token" });
         }
 
         user.isValid = true;

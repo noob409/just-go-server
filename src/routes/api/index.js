@@ -19,6 +19,6 @@ APIRouter.use("/auth", AuthRouter);
 // 路徑需修改
 APIRouter.use("/trips", verifyJwtToken, TripRouter);
 APIRouter.use("/users", verifyJwtToken, UserRouter);
-APIRouter.use("/places", PlaceRouter);
+APIRouter.use("/places", verifyJwtToken, PlaceRouter);
 
 export default APIRouter;

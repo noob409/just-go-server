@@ -4,6 +4,6 @@ import { validateBody } from "../../middlewares/validateFields.js";
 
 const PlaceRouter = Router();
 
-PlaceRouter.get("/", validateBody(['googlePlaceIdList']), getDetailPlace);
+PlaceRouter.post("/", validateBody(["googlePlaceIdList"]), getDetailPlace);
 
 export default PlaceRouter;

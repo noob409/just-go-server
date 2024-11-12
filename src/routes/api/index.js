@@ -7,6 +7,7 @@ import { verifyJwtToken } from "../../middlewares/verifyJwtToken.js";
 import AuthRouter from "./auth.routes.js";
 import TripRouter from "./trip.route.js";
 import UserRouter from "./user.routes.js";
+import PlaceRouter from "./place.route.js";
 
 const APIRouter = Router();
 
@@ -18,5 +19,6 @@ APIRouter.use("/auth", AuthRouter);
 // 路徑需修改
 APIRouter.use("/trips", verifyJwtToken, TripRouter);
 APIRouter.use("/users", verifyJwtToken, UserRouter);
+APIRouter.use("/places", verifyJwtToken, PlaceRouter);
 
 export default APIRouter;

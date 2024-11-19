@@ -65,52 +65,6 @@ export const popularTrips = async (req, res) => {
     }
 }
 
-// /* searchTripById會需要行程是否公開、是否有共編權限，這些邏輯來判斷是否可以讓user查詢 */
-// //  根據Trip ID搜尋行程
-// //  2024/11/19暫時關閉，因為不會用到，程式邏輯需修改
-// export const searchTripById = async (req, res, next) => {
-//     const tripId = req.params.id;
-//     let tripDataById = [];
-
-//     try {
-//         const trip = await Trip.findByPk(tripId);
-
-//         // 檢查行程是否存在
-//         if (!trip) {
-//             return res.status(404).json({ status: "error", message: "Trip not found" });
-//         }
-
-//         // 檢查行程是否為公開的，假設 req.userId 是當前使用者的 ID，這個部分的權限需要再確認
-//         // 如果這兩個條件都成立，代表當前用戶無法查看這個私密行程，程式會停止執行，並返回一個 403，但是還得確認其他權限關係
-//         if (!trip.isPublic && trip.userId !== req.userId) {
-//             return res.status(403).json({ status: "error", message: "You do not have permission to view this trip." });
-//         }
-
-//         // tripInfo 返回資料
-//         tripDataById.tripInfo = {
-//             id: trip.id,
-//             userId: trip.userId,
-//             title: trip.tripName,
-//             image: trip.image,
-//             personalEditPermission: 0, // 默認為 0，如果有權限邏輯，根據實際情況修改
-//             finalPlanId: trip.finalPlanId,
-//             departureDate: trip.departureDate,
-//             endDate: trip.endDate,
-//             labels: trip.label || [],
-//             like: trip.likeCount,
-//             linkPermission: trip.linkPermission,
-//             isPublic: trip.isPublic,
-//             publishDay: trip.publicAt,
-//         };
-//         tripDataById.plans = [];
-
-//         return res.status(200).json({ status: "success", data: tripDataById });
-//     } catch (error) {
-//         console.error(error);
-//         return res.status(500).json({ status: "error", message: "Internal server error" });
-//     }
-// }
-
 //  對行程點讚
 //  2024/11/19 OK
 export const favorTrip = async (req, res) => {
@@ -311,6 +265,52 @@ export const getCollection = async (req, res) => {
         return res.status(500).json({ status: "error", message: "Internal server error" });
     }
 }
+
+// /* searchTripById會需要行程是否公開、是否有共編權限，這些邏輯來判斷是否可以讓user查詢 */
+// //  根據Trip ID搜尋行程
+// //  2024/11/19暫時關閉，因為不會用到，程式邏輯需修改
+// export const searchTripById = async (req, res, next) => {
+//     const tripId = req.params.id;
+//     let tripDataById = [];
+
+//     try {
+//         const trip = await Trip.findByPk(tripId);
+
+//         // 檢查行程是否存在
+//         if (!trip) {
+//             return res.status(404).json({ status: "error", message: "Trip not found" });
+//         }
+
+//         // 檢查行程是否為公開的，假設 req.userId 是當前使用者的 ID，這個部分的權限需要再確認
+//         // 如果這兩個條件都成立，代表當前用戶無法查看這個私密行程，程式會停止執行，並返回一個 403，但是還得確認其他權限關係
+//         if (!trip.isPublic && trip.userId !== req.userId) {
+//             return res.status(403).json({ status: "error", message: "You do not have permission to view this trip." });
+//         }
+
+//         // tripInfo 返回資料
+//         tripDataById.tripInfo = {
+//             id: trip.id,
+//             userId: trip.userId,
+//             title: trip.tripName,
+//             image: trip.image,
+//             personalEditPermission: 0, // 默認為 0，如果有權限邏輯，根據實際情況修改
+//             finalPlanId: trip.finalPlanId,
+//             departureDate: trip.departureDate,
+//             endDate: trip.endDate,
+//             labels: trip.label || [],
+//             like: trip.likeCount,
+//             linkPermission: trip.linkPermission,
+//             isPublic: trip.isPublic,
+//             publishDay: trip.publicAt,
+//         };
+//         tripDataById.plans = [];
+
+//         return res.status(200).json({ status: "success", data: tripDataById });
+//     } catch (error) {
+//         console.error(error);
+//         return res.status(500).json({ status: "error", message: "Internal server error" });
+//     }
+// }
 
 //  建立行程
 //  2024/11/19 OK

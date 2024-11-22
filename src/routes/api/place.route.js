@@ -3,7 +3,10 @@ import {
   getDetailPlace,
   getDetailPlaceById,
 } from "../../controllers/api/place.controller.js";
-import { validateParams } from "../../middlewares/validateFields.js";
+import {
+  validateBody,
+  validateParams,
+} from "../../middlewares/validateFields.js";
 
 const PlaceRouter = Router();
 

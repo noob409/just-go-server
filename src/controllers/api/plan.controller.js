@@ -94,34 +94,21 @@ export const planNameChange = async (req, res) => {
 };
 
 export const getPlans = async (req, res) => {
-  const userId = req.userId;
   const { tripId } = req.params;
 
-  console.log("userId", userId);
-  console.log("tripId", tripId);
-
   try {
-    // 確認使用者是否有權限瀏覽這個 trip 的 plan
-    const trip = await Trip.findByPk(tripId);
-
-    if (!trip) {
-      return res
-        .status(404)
-        .json({ status: "error", message: "Trip not found" });
-    }
-
-    if (trip.userId !== userId || trip.isPublic) {
-      return res
-        .status(403)
-        .json({ status: "error", message: "Permission denied" });
-    }
-
     // 獲取所有跟 tripId 相關的 plan
     const plans = await Plan.findAll({
       where: {
         tripId,
       },
     });
+
+    if (!plans) {
+      return res
+        .status(404)
+        .json({ status: "error", message: "Plans not found" });
+    }
 
     return res.status(200).json({ status: "success", data: plans });
   } catch (error) {

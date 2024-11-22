@@ -8,18 +8,7 @@ export const checkAttractionAccess = async (req, res, next) => {
   const { attractionId } = req.params;
 
   try {
-    const attraction = await Attraction.findByPk(attractionId, {
-      include: {
-        model: Day,
-        include: {
-          model: Plan,
-          include: {
-            model: Trip,
-            attributes: ["userId", "isPublic"],
-          },
-        },
-      },
-    });
+    const attraction = await Attraction.findByPk(attractionId);
 
     if (!attraction) {
       return res
@@ -27,7 +16,7 @@ export const checkAttractionAccess = async (req, res, next) => {
         .json({ status: "error", message: "Attraction not found" });
     }
 
-    const day = attraction.Day;
+    const day = await Day.findByPk(attraction.dayId);
 
     if (!day) {
       return res
@@ -35,7 +24,7 @@ export const checkAttractionAccess = async (req, res, next) => {
         .json({ status: "error", message: "Day not found" });
     }
 
-    const plan = day.Plan;
+    const plan = await Plan.findByPk(day.planId);
 
     if (!plan) {
       return res
@@ -43,7 +32,7 @@ export const checkAttractionAccess = async (req, res, next) => {
         .json({ status: "error", message: "Plan not found" });
     }
 
-    const trip = plan.Trip;
+    const trip = await Trip.findByPk(plan.tripId);
 
     if (!trip) {
       return res
@@ -51,7 +40,7 @@ export const checkAttractionAccess = async (req, res, next) => {
         .json({ status: "error", message: "Trip not found" });
     }
 
-    if (trip.userId !== userId || trip.isPublic) {
+    if (trip.userId !== userId) {
       return res
         .status(403)
         .json({ status: "error", message: "Permission denied" });

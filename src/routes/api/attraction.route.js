@@ -6,13 +6,33 @@ import {
   updateAttractionTime,
   updateAttractionNote,
 } from "../../controllers/api/attraction.controller.js";
+import { checkDayAccess } from "../../middlewares/checkDaysAccess.js";
+import { checkAttractionAccess } from "../../middlewares/checkAttractionAccess.js";
+import { validateBody } from "../../middlewares/validateFields.js";
 
 const AttractionRouter = Router({ mergeParams: true });
 
-AttractionRouter.get("/", getAttractions);
-AttractionRouter.post("/", createAttraction);
-AttractionRouter.delete("/:attractionId", deleteAttraction);
-AttractionRouter.patch("/:attractionId/time", updateAttractionTime);
-AttractionRouter.patch("/:attractionId/note", updateAttractionNote);
+AttractionRouter.get("/", checkDayAccess, getAttractions);
+AttractionRouter.post(
+  "/",
+  checkDayAccess,
+  validateBody(["googlePlaceId", "previousAttractionId"]),
+  createAttraction
+);
+AttractionRouter.delete(
+  "/:attractionId",
+  checkAttractionAccess,
+  deleteAttraction
+);
+AttractionRouter.patch(
+  "/:attractionId/time",
+  checkAttractionAccess,
+  updateAttractionTime
+);
+AttractionRouter.patch(
+  "/:attractionId/note",
+  checkAttractionAccess,
+  updateAttractionNote
+);
 
 export default AttractionRouter;

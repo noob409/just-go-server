@@ -7,12 +7,7 @@ export const checkDaysAccess = async (req, res, next) => {
   const { planId } = req.params;
 
   try {
-    const plan = await Plan.findByPk(planId, {
-      include: {
-        model: Trip,
-        attributes: ["userId", "isPublic"],
-      },
-    });
+    const plan = await Plan.findByPk(planId);
 
     if (!plan) {
       return res
@@ -20,7 +15,7 @@ export const checkDaysAccess = async (req, res, next) => {
         .json({ status: "error", message: "Plan not found" });
     }
 
-    const trip = plan.Trip;
+    const trip = await Trip.findByPk(plan.tripId);
 
     if (!trip) {
       return res
@@ -28,7 +23,7 @@ export const checkDaysAccess = async (req, res, next) => {
         .json({ status: "error", message: "Trip not found" });
     }
 
-    if (trip.userId !== userId || trip.isPublic) {
+    if (trip.userId !== userId) {
       return res
         .status(403)
         .json({ status: "error", message: "Permission denied" });
@@ -48,15 +43,7 @@ export const checkDayAccess = async (req, res, next) => {
   const { dayId } = req.params;
 
   try {
-    const day = await Day.findByPk(dayId, {
-      include: {
-        model: Plan,
-        include: {
-          model: Trip,
-          attributes: ["userId", "isPublic"],
-        },
-      },
-    });
+    const day = await Day.findByPk(dayId);
 
     if (!day) {
       return res
@@ -64,8 +51,15 @@ export const checkDayAccess = async (req, res, next) => {
         .json({ status: "error", message: "Day not found" });
     }
 
-    const plan = day.Plan;
-    const trip = plan.Trip;
+    const plan = await Plan.findByPk(day.planId);
+
+    if (!plan) {
+      return res
+        .status(404)
+        .json({ status: "error", message: "Plan not found" });
+    }
+
+    const trip = await Trip.findByPk(plan.tripId);
 
     if (!trip) {
       return res
@@ -73,7 +67,7 @@ export const checkDayAccess = async (req, res, next) => {
         .json({ status: "error", message: "Trip not found" });
     }
 
-    if (trip.userId !== userId || trip.isPublic) {
+    if (trip.userId !== userId) {
       return res
         .status(403)
         .json({ status: "error", message: "Permission denied" });

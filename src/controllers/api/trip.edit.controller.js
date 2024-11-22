@@ -63,15 +63,13 @@ export const createTrip = async (req, res) => {
 
             // 新增至 dayList
             dayList.push({
-                day: {
-                    id: newDay.id,
-                    planId: newDay.planId,
-                    startAttractionId: newDay.startAttractionId,
-                    nextDayId: newDay.nextDayId,
-                    createdAt: newDay.createdAt,
-                    updatedAt: newDay.updatedAt,
-                },
-                attrList: []
+                id: newDay.id,
+                planId: newDay.planId,
+                startAttractionId: newDay.startAttractionId,
+                nextDayId: newDay.nextDayId,
+                createdAt: newDay.createdAt,
+                updatedAt: newDay.updatedAt,
+                attrList: [],
             });
 
             // 更新 prevDay 為當前創建的 Day
@@ -83,7 +81,7 @@ export const createTrip = async (req, res) => {
 
         // 設置 nextDayId
         for (let i = 0; i < dayList.length - 1; i++) {
-            dayList[i].day.nextDayId = dayList[i + 1].day.id; // 更新當前 day 的 nextDayId 為下一天的 ID
+            dayList[i].nextDayId = dayList[i + 1].id; // 更新當前 day 的 nextDayId 為下一天的 ID
         }
 
         return res.status(201).json({
@@ -106,7 +104,7 @@ export const createTrip = async (req, res) => {
                 plans: [
                     {
                         id: defaultPlan.id,
-                        name: defaultPlan.name || "方案一", // Adjust naming logic if needed
+                        name: defaultPlan.name,
                         days: dayList,
                     },
                 ],
@@ -134,14 +132,14 @@ export const getTrip = async (req, res) => {
             ]
         });
 
-        // 只有當不是trip擁有者呼叫時，才會進到這邊看權限
-        if (trip.userid !== userId) {
-            //  call這個getTrip時，會傳回使用者的permission，然後前端判斷是否有權限編輯或是檢視
-            editPermission = await TripShare.findOne({ where: { userId: userId, tripId: tripId } });
-        }
-
         if (!trip) {
             return res.status(404).json({ status: "error", message: "Trip not found" });
+        }
+
+        // 只有當不是trip擁有者呼叫時，才會進到這邊看權限
+        if (trip.userId !== userId) {
+            //  call這個getTrip時，會傳回使用者的permission，然後前端判斷是否有權限編輯或是檢視
+            editPermission = await TripShare.findOne({ where: { userId: userId, tripId: tripId } });
         }
 
         // Flatten days from all plans
@@ -165,14 +163,14 @@ export const getTrip = async (req, res) => {
             }
 
             return {
-                planId: plan.id,
+                id: plan.id,
                 sortedDays: sortedDays
             };
         });
 
         // Construct dayList and sort attractions
         const planList = await Promise.all(trip.plans.map(async (plan) => {
-            const sortedPlanDays = sortedDaysByPlan.find(p => p.planId === plan.id).sortedDays;
+            const sortedPlanDays = sortedDaysByPlan.find(p => p.id === plan.id).sortedDays;
             // console.log("Sorted Plan Days for Plan ID:", plan.id, sortedPlanDays);
 
             const dayList = await Promise.all(sortedPlanDays.map(async (day) => {
@@ -182,14 +180,12 @@ export const getTrip = async (req, res) => {
                 });
 
                 return {
-                    day: {
-                        id: day.id,
-                        planId: day.planId,
-                        startAttractionId: day.startAttractionId,
-                        nextDayId: day.nextDayId,
-                        createdAt: day.createdAt,
-                        updatedAt: day.updatedAt,
-                    },
+                    id: day.id,
+                    planId: day.planId,
+                    startAttractionId: day.startAttractionId,
+                    nextDayId: day.nextDayId,
+                    createdAt: day.createdAt,
+                    updatedAt: day.updatedAt,
                     attrList: attrList.map(attr => ({
                         id: attr.id,
                         dayId: attr.dayId,
@@ -202,9 +198,9 @@ export const getTrip = async (req, res) => {
                 };
             }));
             return {
-                planId: plan.id,
-                planName: plan.name,
-                dayList: dayList
+                id: plan.id,
+                name: plan.name,
+                days: dayList
             };
         }));
 
@@ -239,7 +235,7 @@ export const getTrip = async (req, res) => {
 //  把景點加入方案的邏輯，新增景點
 //  2024/11/19 OK
 export const placeToPlan = async (req, res) => {
-    const { googlePlaceId, dayId } = req.body;
+    const { googlePlaceId, dayId, previousAttractionId } = req.body;
     const tripId = req.params.id;
 
     try {
@@ -267,28 +263,36 @@ export const placeToPlan = async (req, res) => {
             });
         }
 
-        // 查找當前第一個景點
-        let currentAttraction = await Attraction.findByPk(day.startAttractionId);
+        // 如果前端提供了最後一個景點的 ID
+        if (previousAttractionId) {
+            // 查找最後一個景點
+            const previousAttraction = await Attraction.findByPk(previousAttractionId);
+            if (!previousAttraction) {
+                return res.status(404).json({ status: "error", message: "Final attraction not found" });
+            }
 
-        // while迴圈，找到鏈表的最後一個景點
-        while (currentAttraction.nextAttractionId) {
-            currentAttraction = await Attraction.findByPk(currentAttraction.nextAttractionId);
+            // 創建新景點並鏈接到最後一個景點
+            const newAttraction = await Attraction.create({
+                dayId: dayId,
+                googlePlaceId: googlePlaceId,
+                nextAttractionId: previousAttraction.nextAttractionId, // 新景點的下一個為 null，表示它是最後一個
+            });
+
+            // 更新 previousAttraction 的 nextAttractionId 指向新景點
+            await previousAttraction.update({ nextAttractionId: newAttraction.id });
+
+            return res.status(201).json({
+                status: "success",
+                data: newAttraction,
+                message: "Attraction has been added to the end of the day",
+            });
+        } else {
+            // 如果沒有提供 finalAttractionId，回傳錯誤
+            return res.status(400).json({
+                status: "error",
+                message: "Previous attraction ID is required to add a new attraction",
+            });
         }
-
-        // 創建新景點，並鏈接到當前最後一個景點
-        const newAttraction = await Attraction.create({
-            dayId: dayId,
-            googlePlaceId: googlePlaceId,
-            nextAttractionId: null, // 新景點的下一個為 null，表示它是最後一個
-        });
-
-        // 更新當前最後一個景點的 nextAttractionId
-        await currentAttraction.update({ nextAttractionId: newAttraction.id });
-
-        return res.status(201).json({
-            status: "success",
-            data: newAttraction,
-        });
     } catch (error) {
         console.log(error);
         return res.status(500).json({ status: "error", message: "Internal server error" });

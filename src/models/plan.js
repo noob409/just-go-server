@@ -19,7 +19,6 @@ const Plan = sequelize.define("plan", {
   },
   name: {
     type: DataTypes.STRING,
-    defaultValue: "方案一",
   },
   isFinal: {
     type: DataTypes.BOOLEAN,

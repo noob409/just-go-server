@@ -16,7 +16,7 @@ AttractionRouter.get("/", checkDayAccess, getAttractions);
 AttractionRouter.post(
   "/",
   checkDayAccess,
-  validateBody(["googlePlaceId", "previousAttractionId"]),
+  validateBody(["googlePlaceId"]),
   createAttraction
 );
 AttractionRouter.delete(

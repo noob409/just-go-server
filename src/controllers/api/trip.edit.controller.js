@@ -119,29 +119,156 @@ export const createTrip = async (req, res) => {
   }
 };
 
-//  取得行程資料，目前測試OK
-//  2024/11/19 OK
+// //  取得行程資料(詳細版本)，目前測試OK
+// export const getTrip = async (req, res) => {
+//   const tripId = req.params.id;
+//   const userId = req.userId;
+//   let editPermission = null;
+
+//   try {
+//     // Fetch trip with all plans and associated days
+//     const trip = await Trip.findByPk(tripId, {
+//       include: [
+//         { model: User, as: "user", attributes: ["id", "username", "avatar"] },
+//         {
+//           model: Plan,
+//           as: "plans",
+//           include: [
+//             {
+//               model: Day,
+//               as: "days",
+//               include: [{ model: Attraction, as: "attractions" }],
+//             },
+//           ],
+//         },
+//       ],
+//     });
+
+//     if (!trip) {
+//       return res
+//         .status(404)
+//         .json({ status: "error", message: "Trip not found" });
+//     }
+
+//     // 只有當不是trip擁有者呼叫時，才會進到這邊看權限
+//     if (trip.userId !== userId) {
+//       //  call這個getTrip時，會傳回使用者的permission，然後前端判斷是否有權限編輯或是檢視
+//       editPermission = await TripShare.findOne({
+//         where: { userId: userId, tripId: tripId },
+//       });
+//     }
+
+//     // Flatten days from all plans
+//     let allDays = trip.plans.reduce((acc, plan) => {
+//       return acc.concat(plan.days);
+//     }, []);
+
+//     // console.log("All Days:", allDays);
+
+//     // Find all used nextDayIds
+//     const usedNextDayIds = new Set(
+//       allDays.map((day) => day.nextDayId).filter((id) => id !== null)
+//     );
+
+//     // Sort days for each plan
+//     const sortedDaysByPlan = trip.plans.map((plan) => {
+//       let currentDay = plan.days.find(
+//         (day) => !usedNextDayIds.has(day.id) && day.nextDayId !== null
+//       );
+//       let sortedDays = [];
+
+//       while (currentDay) {
+//         sortedDays.push(currentDay);
+//         currentDay = plan.days.find((day) => day.id === currentDay.nextDayId); // Find the next day
+//       }
+
+//       return {
+//         id: plan.id,
+//         sortedDays: sortedDays,
+//       };
+//     });
+
+//     // Construct dayList and sort attractions
+//     const planList = await Promise.all(
+//       trip.plans.map(async (plan) => {
+//         const sortedPlanDays = sortedDaysByPlan.find(
+//           (p) => p.id === plan.id
+//         ).sortedDays;
+//         // console.log("Sorted Plan Days for Plan ID:", plan.id, sortedPlanDays);
+
+//         const dayList = await Promise.all(
+//           sortedPlanDays.map(async (day) => {
+//             const attrList = await Attraction.findAll({
+//               where: { dayId: day.id },
+//               // order: [['startAt', 'ASC']], // Sort by startAt
+//             });
+
+//             return {
+//               id: day.id,
+//               planId: day.planId,
+//               startAttractionId: day.startAttractionId,
+//               nextDayId: day.nextDayId,
+//               createdAt: day.createdAt,
+//               updatedAt: day.updatedAt,
+//               attrList: attrList.map((attr) => ({
+//                 id: attr.id,
+//                 dayId: attr.dayId,
+//                 startAt: attr.startAt,
+//                 endAt: attr.endAt,
+//                 note: attr.note,
+//                 googlePlaceId: attr.googlePlaceId,
+//                 nextAttractionId: attr.nextAttractionId,
+//               })),
+//             };
+//           })
+//         );
+//         return {
+//           id: plan.id,
+//           name: plan.name,
+//           days: dayList,
+//         };
+//       })
+//     );
+
+//     // Return data
+//     return res.status(200).json({
+//       status: "success",
+//       data: {
+//         tripInfo: {
+//           id: trip.id,
+//           userId: trip.userId,
+//           title: trip.tripName,
+//           image: trip.image,
+//           personalEditPermission: editPermission?.permission || 1,
+//           finalPlanId: trip.finalPlanId,
+//           departureDate: trip.departureDate,
+//           endDate: trip.endDate,
+//           labels: trip.label || [],
+//           like: trip.likeCount || 0,
+//           linkPermission: trip.linkPermission,
+//           isPublic: trip.isPublic,
+//           publishDay: trip.publicAt,
+//         },
+//         planList: planList, // Return plans with dayList
+//       },
+//     });
+//   } catch (error) {
+//     console.error(error);
+//     return res.status(500).json({ status: "error", message: "Internal server error" });
+//   }
+// };
+
+//  取得行程資訊(only TripInfo)
 export const getTrip = async (req, res) => {
   const tripId = req.params.id;
   const userId = req.userId;
   let editPermission = null;
 
   try {
-    // Fetch trip with all plans and associated days
+    // Fetch only trip basic info and owner details
     const trip = await Trip.findByPk(tripId, {
       include: [
         { model: User, as: "user", attributes: ["id", "username", "avatar"] },
-        {
-          model: Plan,
-          as: "plans",
-          include: [
-            {
-              model: Day,
-              as: "days",
-              include: [{ model: Attraction, as: "attractions" }],
-            },
-          ],
-        },
       ],
     });
 
@@ -151,87 +278,14 @@ export const getTrip = async (req, res) => {
         .json({ status: "error", message: "Trip not found" });
     }
 
-    // 只有當不是trip擁有者呼叫時，才會進到這邊看權限
+    // Check edit permission if not the owner
     if (trip.userId !== userId) {
-      //  call這個getTrip時，會傳回使用者的permission，然後前端判斷是否有權限編輯或是檢視
       editPermission = await TripShare.findOne({
         where: { userId: userId, tripId: tripId },
       });
     }
 
-    // Flatten days from all plans
-    let allDays = trip.plans.reduce((acc, plan) => {
-      return acc.concat(plan.days);
-    }, []);
-
-    // console.log("All Days:", allDays);
-
-    // Find all used nextDayIds
-    const usedNextDayIds = new Set(
-      allDays.map((day) => day.nextDayId).filter((id) => id !== null)
-    );
-
-    // Sort days for each plan
-    const sortedDaysByPlan = trip.plans.map((plan) => {
-      let currentDay = plan.days.find(
-        (day) => !usedNextDayIds.has(day.id) && day.nextDayId !== null
-      );
-      let sortedDays = [];
-
-      while (currentDay) {
-        sortedDays.push(currentDay);
-        currentDay = plan.days.find((day) => day.id === currentDay.nextDayId); // Find the next day
-      }
-
-      return {
-        id: plan.id,
-        sortedDays: sortedDays,
-      };
-    });
-
-    // Construct dayList and sort attractions
-    const planList = await Promise.all(
-      trip.plans.map(async (plan) => {
-        const sortedPlanDays = sortedDaysByPlan.find(
-          (p) => p.id === plan.id
-        ).sortedDays;
-        // console.log("Sorted Plan Days for Plan ID:", plan.id, sortedPlanDays);
-
-        const dayList = await Promise.all(
-          sortedPlanDays.map(async (day) => {
-            const attrList = await Attraction.findAll({
-              where: { dayId: day.id },
-              // order: [['startAt', 'ASC']], // Sort by startAt
-            });
-
-            return {
-              id: day.id,
-              planId: day.planId,
-              startAttractionId: day.startAttractionId,
-              nextDayId: day.nextDayId,
-              createdAt: day.createdAt,
-              updatedAt: day.updatedAt,
-              attrList: attrList.map((attr) => ({
-                id: attr.id,
-                dayId: attr.dayId,
-                startAt: attr.startAt,
-                endAt: attr.endAt,
-                note: attr.note,
-                googlePlaceId: attr.googlePlaceId,
-                nextAttractionId: attr.nextAttractionId,
-              })),
-            };
-          })
-        );
-        return {
-          id: plan.id,
-          name: plan.name,
-          days: dayList,
-        };
-      })
-    );
-
-    // Return data
+    // Return only tripInfo
     return res.status(200).json({
       status: "success",
       data: {
@@ -250,14 +304,13 @@ export const getTrip = async (req, res) => {
           isPublic: trip.isPublic,
           publishDay: trip.publicAt,
         },
-        planList: planList, // Return plans with dayList
       },
     });
   } catch (error) {
     console.error(error);
     return res.status(500).json({ status: "error", message: "Internal server error" });
   }
-};
+}
 
 //  更新行程資訊 by figma
 export const updateTripInfo = async (req, res) => {
@@ -271,7 +324,7 @@ export const updateTripInfo = async (req, res) => {
     if (!trip) {
       return res.status(404).json({ status: "error", message: "Trip Not Foun" });
     }
-    
+
     if (trip.userId !== userId) {
       return res.status(403).json({ status: "error", message: "Forbidden" });
     }

@@ -4,7 +4,7 @@ import { validateBody, validateParams } from "../../middlewares/validateFields.j
 import {
     addPlaceCollection, deleteTrip, favorTrip, popularTrips, deletePlaceCollection, getCollection
 } from "../../controllers/api/trip.controller.js";
-import { createTrip, getTrip, placeToPlan } from "../../controllers/api/trip.edit.controller.js";
+import { createTrip, getTrip, placeToPlan, updateTripInfo } from "../../controllers/api/trip.edit.controller.js";
 import { coEditTripPermission, deleteCoEditTripPermission } from "../../controllers/api/trip.share.controller.js";
 
 const TripRouter = Router();
@@ -19,6 +19,7 @@ TripRouter.post("/", upload.single('image'), validateBody(['name', 'startTime', 
 // TripRouter.get("/:id", validateParams(['id']), searchTripById);  // Test OK
 TripRouter.delete("/:id", validateParams(['id']), deleteTrip);  // Test OK
 TripRouter.post("/:id/favor", validateParams(['id']), favorTrip);  // Test OK
+TripRouter.put("/:id", upload.single('image'), validateParams(['id']), updateTripInfo); // 加入 updateTripInfo
 TripRouter.get("/:id/details", validateParams(['id']), getTrip);  // Test OK
 TripRouter.post("/:id/share", validateParams(['id']), validateBody(['linkPermission']), coEditTripPermission);
 TripRouter.delete("/:id/share", validateParams(['id']), validateBody(['deleteUserId']), deleteCoEditTripPermission);

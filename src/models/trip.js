@@ -56,6 +56,9 @@ const Trip = sequelize.define("trip", {
     // VARCHAR(255)[]
     type: DataTypes.ARRAY(DataTypes.STRING),
   },
+  introduction: {
+    type: DataTypes.STRING,
+  },
 }, {
   freezeTableName: true,
 });

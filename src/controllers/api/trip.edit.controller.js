@@ -255,11 +255,74 @@ export const getTrip = async (req, res) => {
     });
   } catch (error) {
     console.error(error);
-    return res
-      .status(500)
-      .json({ status: "error", message: "Internal server error" });
+    return res.status(500).json({ status: "error", message: "Internal server error" });
   }
 };
+
+//  更新行程資訊 by figma
+export const updateTripInfo = async (req, res) => {
+  const { tripIntro, hashtags } = req.body;
+  const tripId = req.params.id;
+  const userId = req.userId;
+  const tripAvatar = req.file;
+
+  try {
+    const trip = await Trip.findByPk(tripId);
+    if (!trip) {
+      return res.status(404).json({ status: "error", message: "Trip Not Foun" });
+    }
+    
+    if (trip.userId !== userId) {
+      return res.status(403).json({ status: "error", message: "Forbidden" });
+    }
+
+    // 處理標籤 (hashtags)，確保是陣列形式
+    let updatedHashtags = [];
+    if (Array.isArray(hashtags)) {
+      updatedHashtags = hashtags;
+    } else if (typeof hashtags === "string") {
+      updatedHashtags = hashtags.split(",").map((tag) => tag.trim());
+    }
+
+    // 處理封面圖片更新
+    let tripAvatarPath = trip.image; // 預設使用現有的圖片
+    if (tripAvatar) {
+      tripAvatarPath = `/uploads/trips/${tripAvatar.filename}`;
+    }
+
+    // 更新行程資料
+    await trip.update({
+      introduction: tripIntro || trip.introduction, // 如果提供了行程介紹，則更新；否則保留原有值
+      label: updatedHashtags.length > 0 ? updatedHashtags : trip.label, // 如果有標籤，則更新；否則保留原有值
+      image: tripAvatarPath, // 更新封面圖片路徑 (若無新圖片，則保留原有值)
+    });
+
+    // 回傳更新後的行程資訊
+    return res.status(200).json({
+      status: "success",
+      data: {
+        tripInfo: {
+          id: trip.id,
+          userId: trip.userId,
+          title: trip.tripName,
+          image: trip.image,
+          personalEditPermission: 1, // 假設預設值
+          finalPlanId: trip.finalPlanId,
+          departureDate: trip.departureDate,
+          endDate: trip.endDate,
+          labels: trip.label || [],
+          like: trip.likeCount || 0,
+          linkPermission: trip.linkPermission,
+          isPublic: trip.isPublic,
+          publishDay: trip.publicAt,
+        },
+      },
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ status: "error", message: "Internal server error" });
+  }
+}
 
 //  把景點加入方案的邏輯，新增景點
 //  2024/11/19 OK

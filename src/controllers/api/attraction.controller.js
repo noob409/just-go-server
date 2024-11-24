@@ -57,10 +57,18 @@ export const createAttraction = async (req, res) => {
 };
 
 export const deleteAttraction = async (req, res) => {
-  const { attractionId } = req.params;
-  const { preAttractionId, nextAttractionId } = req.body;
+  const { dayId, attractionId } = req.params;
+  const { preAttractionId } = req.body;
 
   try {
+    const day = await Day.findByPk(dayId);
+
+    if (!day) {
+      return res
+        .status(404)
+        .json({ status: "error", message: "Day not found" });
+    }
+
     const attraction = await Attraction.findByPk(attractionId);
 
     if (!attraction) {
@@ -69,9 +77,15 @@ export const deleteAttraction = async (req, res) => {
         .json({ status: "error", message: "Attraction not found" });
     }
 
+    if (day.startAttractionId === attractionId) {
+      await day.update({ startAttractionId: attraction.nextAttractionId });
+    }
+
     if (preAttractionId) {
       const preAttraction = await Attraction.findByPk(preAttractionId);
-      await preAttraction.update({ nextAttractionId });
+      await preAttraction.update({
+        nextAttractionId: attraction.nextAttractionId,
+      });
     }
 
     await attraction.destroy();

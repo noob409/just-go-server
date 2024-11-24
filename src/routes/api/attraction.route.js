@@ -8,7 +8,10 @@ import {
 } from "../../controllers/api/attraction.controller.js";
 import { checkDayAccess } from "../../middlewares/checkDaysAccess.js";
 import { checkAttractionAccess } from "../../middlewares/checkAttractionAccess.js";
-import { validateBody } from "../../middlewares/validateFields.js";
+import {
+  validateParams,
+  validateBody,
+} from "../../middlewares/validateFields.js";
 
 const AttractionRouter = Router({ mergeParams: true });
 
@@ -21,6 +24,7 @@ AttractionRouter.post(
 );
 AttractionRouter.delete(
   "/:attractionId",
+  validateParams(["tripId", "planId"]),
   checkAttractionAccess,
   deleteAttraction
 );

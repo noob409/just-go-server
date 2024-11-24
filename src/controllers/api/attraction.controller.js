@@ -56,7 +56,34 @@ export const createAttraction = async (req, res) => {
   }
 };
 
-export const deleteAttraction = async (req, res) => {};
+export const deleteAttraction = async (req, res) => {
+  const { attractionId } = req.params;
+  const { preAttractionId, nextAttractionId } = req.body;
+
+  try {
+    const attraction = await Attraction.findByPk(attractionId);
+
+    if (!attraction) {
+      return res
+        .status(404)
+        .json({ status: "error", message: "Attraction not found" });
+    }
+
+    if (preAttractionId) {
+      const preAttraction = await Attraction.findByPk(preAttractionId);
+      await preAttraction.update({ nextAttractionId });
+    }
+
+    await attraction.destroy();
+
+    return res.status(204).json({ status: "success" });
+  } catch (error) {
+    console.error(error);
+    return res
+      .status(500)
+      .json({ status: "error", message: "Internal server error" });
+  }
+};
 
 export const updateAttractionTime = async (req, res) => {};
 

@@ -4,6 +4,7 @@ import { Router } from "express";
 
 import { testController } from "../../controllers/api/test.controller.js";
 import { verifyJwtToken } from "../../middlewares/verifyJwtToken.js";
+import { validateParams } from "../../middlewares/validateFields.js";
 import AuthRouter from "./auth.routes.js";
 import TripRouter from "./trip.route.js";
 import UserRouter from "./user.routes.js";
@@ -24,11 +25,22 @@ APIRouter.use("/users", verifyJwtToken, UserRouter);
 APIRouter.use("/places", verifyJwtToken, PlaceRouter);
 APIRouter.use(
   "/trips/:tripId/plans/:planId/days/:dayId/attractions",
+  validateParams(["tripId", "planId", "dayId"]),
   verifyJwtToken,
   AttractionRouter
 );
-APIRouter.use("/trips/:tripId/plans/:planId/days", verifyJwtToken, DayRouter);
-APIRouter.use("/trips/:tripId/plans", verifyJwtToken, PlanRouter);
+APIRouter.use(
+  "/trips/:tripId/plans/:planId/days",
+  validateParams(["tripId", "planId"]),
+  verifyJwtToken,
+  DayRouter
+);
+APIRouter.use(
+  "/trips/:tripId/plans",
+  validateParams(["tripId"]),
+  verifyJwtToken,
+  PlanRouter
+);
 APIRouter.use("/trips", verifyJwtToken, TripRouter);
 
 export default APIRouter;

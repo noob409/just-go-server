@@ -3,12 +3,16 @@ import {
   getAttractions,
   createAttraction,
   deleteAttraction,
+  updateAttractionOrder,
   updateAttractionTime,
   updateAttractionNote,
 } from "../../controllers/api/attraction.controller.js";
 import { checkDayAccess } from "../../middlewares/checkDaysAccess.js";
 import { checkAttractionAccess } from "../../middlewares/checkAttractionAccess.js";
-import { validateBody } from "../../middlewares/validateFields.js";
+import {
+  validateBody,
+  validateParams,
+} from "../../middlewares/validateFields.js";
 
 const AttractionRouter = Router({ mergeParams: true });
 
@@ -21,8 +25,15 @@ AttractionRouter.post(
 );
 AttractionRouter.delete(
   "/:attractionId",
+  validateParams(["attractionId"]),
   checkAttractionAccess,
   deleteAttraction
+);
+AttractionRouter.patch(
+  "/:attractionId/order",
+  validateParams(["attractionId"]),
+  checkAttractionAccess,
+  updateAttractionOrder
 );
 AttractionRouter.patch(
   "/:attractionId/time",

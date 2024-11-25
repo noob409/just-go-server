@@ -29,7 +29,7 @@ export const getAttractions = async (req, res) => {
 
 export const createAttraction = async (req, res) => {
   const { dayId } = req.params;
-  const { googlePlaceId, previousAttractionId } = req.body;
+  const { googlePlaceId, preAttractionId } = req.body;
 
   try {
     const day = await Day.findByPk(dayId);
@@ -41,10 +41,8 @@ export const createAttraction = async (req, res) => {
     if (day.startAttractionId === null) {
       await day.update({ startAttractionId: attraction.id });
     } else {
-      const previousAttraction = await Attraction.findByPk(
-        previousAttractionId
-      );
-      await previousAttraction.update({ nextAttractionId: attraction.id });
+      const preAttraction = await Attraction.findByPk(preAttractionId);
+      await preAttraction.update({ nextAttractionId: attraction.id });
     }
 
     return res.status(201).json({ status: "success", data: attraction });
@@ -91,6 +89,60 @@ export const deleteAttraction = async (req, res) => {
     await attraction.destroy();
 
     return res.status(204).json({ status: "success" });
+  } catch (error) {
+    console.error(error);
+    return res
+      .status(500)
+      .json({ status: "error", message: "Internal server error" });
+  }
+};
+
+export const updateAttractionOrder = async (req, res) => {
+  const { dayId, attractionId } = req.params;
+  const { oldPreAttractionId, newPreAttractionId } = req.body;
+
+  try {
+    const day = await Day.findByPk(dayId);
+
+    if (!day) {
+      return res
+        .status(404)
+        .json({ status: "error", message: "Day not found" });
+    }
+
+    const attraction = await Attraction.findByPk(attractionId);
+
+    if (!attraction) {
+      return res
+        .status(404)
+        .json({ status: "error", message: "Attraction not found" });
+    }
+
+    const oldPreAttraction = oldPreAttractionId
+      ? await Attraction.findByPk(oldPreAttractionId)
+      : null;
+
+    const newPreAttraction = newPreAttractionId
+      ? await Attraction.findByPk(newPreAttractionId)
+      : null;
+
+    if (oldPreAttraction) {
+      await oldPreAttraction.update({
+        nextAttractionId: attraction.nextAttractionId,
+      });
+    }
+
+    if (newPreAttraction) {
+      await attraction.update({
+        nextAttractionId: newPreAttraction.nextAttractionId,
+      });
+      await newPreAttraction.update({ nextAttractionId: attractionId });
+    } else {
+      await attraction.update({ nextAttractionId: day.startAttractionId });
+      await day.update({ startAttractionId: attractionId });
+    }
+
+    return res.status(200).json({ status: "success", data: attraction });
   } catch (error) {
     console.error(error);
     return res

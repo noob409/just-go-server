@@ -138,6 +138,7 @@ export const updateAttractionOrder = async (req, res) => {
       });
       await newPreAttraction.update({ nextAttractionId: attractionId });
     } else {
+      console.log("newPreAttractionId is null");
       await attraction.update({ nextAttractionId: day.startAttractionId });
       await day.update({ startAttractionId: attractionId });
     }

@@ -15,6 +15,7 @@ import {
 import {
   createTrip,
   getTrip,
+  updateTripInfo,
   placeToPlan,
 } from "../../controllers/api/trip.edit.controller.js";
 import {

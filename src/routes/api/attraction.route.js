@@ -38,6 +38,7 @@ AttractionRouter.patch(
 AttractionRouter.patch(
   "/:attractionId/time",
   checkAttractionAccess,
+  validateBody(["startAt", "endAt"]),
   updateAttractionTime
 );
 AttractionRouter.patch(

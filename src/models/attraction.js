@@ -14,10 +14,12 @@ const Attraction = sequelize.define("attraction", {
     allowNull: false,
   },
   startAt: {
-    type: DataTypes.DATE,
+    type: DataTypes.STRING,
+    defaultValue: "00:00",
   },
   endAt: {
-    type: DataTypes.DATE,
+    type: DataTypes.STRING,
+    defaultValue: "00:00",
   },
   note: {
     type: DataTypes.STRING,

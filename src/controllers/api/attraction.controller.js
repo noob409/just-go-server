@@ -152,6 +152,31 @@ export const updateAttractionOrder = async (req, res) => {
   }
 };
 
-export const updateAttractionTime = async (req, res) => {};
+export const updateAttractionTime = async (req, res) => {
+  const { attractionId } = req.params;
+  const { startAt, endAt } = req.body;
+
+  try {
+    const attraction = await Attraction.findByPk(attractionId);
+
+    if (!attraction) {
+      return res
+        .status(404)
+        .json({ status: "error", message: "Attraction not found" });
+    }
+
+    await attraction.update({
+      startAt,
+      endAt,
+    });
+
+    return res.status(200).json({ status: "success", data: attraction });
+  } catch (error) {
+    console.error(error);
+    return res
+      .status(500)
+      .json({ status: "error", message: "Internal server error" });
+  }
+};
 
 export const updateAttractionNote = async (req, res) => {};

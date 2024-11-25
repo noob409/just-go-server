@@ -44,6 +44,7 @@ AttractionRouter.patch(
 AttractionRouter.patch(
   "/:attractionId/note",
   checkAttractionAccess,
+  validateBody(["note"]),
   updateAttractionNote
 );
 

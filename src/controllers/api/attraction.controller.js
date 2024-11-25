@@ -179,4 +179,28 @@ export const updateAttractionTime = async (req, res) => {
   }
 };
 
-export const updateAttractionNote = async (req, res) => {};
+export const updateAttractionNote = async (req, res) => {
+  const { attractionId } = req.params;
+  const { note } = req.body;
+
+  try {
+    const attraction = await Attraction.findByPk(attractionId);
+
+    if (!attraction) {
+      return res
+        .status(404)
+        .json({ status: "error", message: "Attraction not found" });
+    }
+
+    await attraction.update({
+      note,
+    });
+
+    return res.status(200).json({ status: "success", data: attraction });
+  } catch (error) {
+    console.error(error);
+    return res
+      .status(500)
+      .json({ status: "error", message: "Internal server error" });
+  }
+};

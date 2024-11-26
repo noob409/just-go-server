@@ -120,6 +120,63 @@ export const createTrip = async (req, res) => {
   }
 };
 
+export const publishTrip = async (req, res) => {
+  const tripId = req.params.id;
+  const userId = req.userId;
+  const { isPublic } = req.body;
+
+  try {
+    const trip = await Trip.findByPk(tripId);
+
+    if (!trip) {
+      return res
+        .status(404)
+        .json({ status: "error", message: "Trip not found" });
+    }
+
+    if (trip.userId !== userId) {
+      return res
+        .status(403)
+        .json({ status: "error", message: "Permission denied" });
+    }
+
+    // 更新行程的公開狀態
+    await trip.update({ isPublic: isPublic });
+
+    // 如果是公開行程，則更新公開時間
+    if (isPublic) {
+      await trip.update({ publicAt: new Date() });
+    }
+
+    return res.status(200).json({
+      status: "success",
+      data: {
+        tripInfo: {
+          id: trip.id,
+          userId: trip.userId,
+          title: trip.tripName,
+          image: trip.image,
+          description: trip.description,
+          editPermission: 1, // Assuming a default value; update as needed
+          finalPlanId: trip.finalPlanId,
+          departureDate: trip.departureDate,
+          endDate: trip.endDate,
+          labels: trip.label || [],
+          like: trip.likeCount || 0,
+          linkPermission: trip.linkPermission || false,
+          isPublic: trip.isPublic || false,
+          publishDay: trip.publicAt || null,
+        },
+      },
+    });
+  } catch (error) {
+    console.error(error);
+    return res
+      .status(500)
+      .json({ status: "error", message: "Internal server error" });
+  }
+};
+
 // //  取得行程資料(詳細版本)，目前測試OK
 // export const getTrip = async (req, res) => {
 //   const tripId = req.params.id;

@@ -35,9 +35,6 @@ export const checkPlanAccess = async (req, res, next) => {
   const { tripId, planId } = req.params;
 
   try {
-    console.log("tripId", tripId);
-    console.log("planId", planId);
-
     const plan = await Plan.findByPk(planId);
 
     if (!plan) {

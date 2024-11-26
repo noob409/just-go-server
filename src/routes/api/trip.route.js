@@ -17,6 +17,7 @@ import {
   getTrip,
   updateTripInfo,
   placeToPlan,
+  publishTrip,
 } from "../../controllers/api/trip.edit.controller.js";
 import {
   coEditTripPermission,
@@ -74,8 +75,10 @@ TripRouter.post(
   validateParams(["id"]),
   placeToPlan
 ); // 目前測試OK，但如果同一天有好多個景點時間相同，則順序會錯亂
-// TripRouter.post("/:id/plan", validateParams(['id']), validateBody(['name', 'startAt', 'endAt']), createPlan);  // Test OK
 
+TripRouter.patch("/:id/publish", validateParams(["id"]), publishTrip);
+
+// TripRouter.post("/:id/plan", validateParams(['id']), validateBody(['name', 'startAt', 'endAt']), createPlan);  // Test OK
 // TripRouter.get("/:id/plan", validateParams(['id']), getPlan);  // Test OK
 // TripRouter.get("/:id/plan/days", validateBody(['planId']), getDay);  // Test OK
 // TripRouter.get("/:id/plan/days/specificday", validateBody(['dayId']), getAttraction);  // Test OK，但就如placeToPlan所說，景點時間問題希望由前端判斷

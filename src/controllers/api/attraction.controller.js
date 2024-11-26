@@ -5,7 +5,6 @@ export const getAttractions = async (req, res) => {
   const { dayId } = req.params;
 
   try {
-    // 獲取所有跟 dayId 相關的 attraction
     const attractions = await Attraction.findAll({
       where: {
         dayId,

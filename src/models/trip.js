@@ -6,62 +6,66 @@ import TripLike from "./trip_like.js";
 import TripShare from "./trip_share.js";
 import Plan from "./plan.js";
 
-const Trip = sequelize.define("trip", {
-  id: {
-    type: DataTypes.UUID,
-    defaultValue: DataTypes.UUIDV4,
-    primaryKey: true,
+const Trip = sequelize.define(
+  "trip",
+  {
+    id: {
+      type: DataTypes.UUID,
+      defaultValue: DataTypes.UUIDV4,
+      primaryKey: true,
+    },
+    userId: {
+      type: DataTypes.UUID,
+      allowNull: false,
+    },
+    tripName: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    image: {
+      type: DataTypes.STRING,
+    },
+    finalPlanId: {
+      type: DataTypes.UUID,
+    },
+    departureDate: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    endDate: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    linkPermission: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      defaultValue: 0,
+    },
+    isPublic: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false,
+    },
+    publicAt: {
+      type: DataTypes.DATE,
+    },
+    likeCount: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      defaultValue: 0,
+    },
+    label: {
+      // VARCHAR(255)[]
+      type: DataTypes.ARRAY(DataTypes.STRING),
+    },
+    description: {
+      type: DataTypes.STRING,
+    },
   },
-  userId: {
-    type: DataTypes.UUID,
-    allowNull: false,
-  },
-  tripName: {
-    type: DataTypes.STRING,
-    allowNull: false,
-  },
-  image: {
-    type: DataTypes.STRING,
-  },
-  finalPlanId: {
-    type: DataTypes.UUID,
-  },
-  departureDate: {
-    type: DataTypes.STRING,
-    allowNull: false,
-  },
-  endDate: {
-    type: DataTypes.STRING,
-    allowNull: false
-  },
-  linkPermission: {
-    type: DataTypes.INTEGER,
-    allowNull: false,
-    defaultValue: 0,
-  },
-  isPublic: {
-    type: DataTypes.BOOLEAN,
-    allowNull: false,
-    defaultValue: false,
-  },
-  publicAt: {
-    type: DataTypes.DATE,
-  },
-  likeCount: {
-    type: DataTypes.INTEGER,
-    allowNull: false,
-    defaultValue: 0,
-  },
-  label: {
-    // VARCHAR(255)[]
-    type: DataTypes.ARRAY(DataTypes.STRING),
-  },
-  introduction: {
-    type: DataTypes.STRING,
-  },
-}, {
-  freezeTableName: true,
-});
+  {
+    freezeTableName: true,
+  }
+);
 
 export const associate = () => {
   Trip.belongsTo(User, { foreignKey: "userId" });

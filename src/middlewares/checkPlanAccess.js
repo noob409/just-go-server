@@ -15,7 +15,7 @@ export const checkPlansAccess = async (req, res, next) => {
         .json({ status: "error", message: "Trip not found" });
     }
 
-    if (trip.userId !== userId || trip.isPublic) {
+    if (trip.userId !== userId && !trip.isPublic) {
       return res
         .status(403)
         .json({ status: "error", message: "Permission denied" });
@@ -51,7 +51,13 @@ export const checkPlanAccess = async (req, res, next) => {
         .json({ status: "error", message: "Trip not found" });
     }
 
-    if (trip.userId !== userId || tripId !== trip.id) {
+    if (tripId !== trip.id) {
+      return res
+        .status(403)
+        .json({ status: "error", message: "Permission denied" });
+    }
+
+    if (trip.userId !== userId && !trip.isPublic) {
       return res
         .status(403)
         .json({ status: "error", message: "Permission denied" });

@@ -53,36 +53,30 @@ export const finalPlanChange = async (req, res) => {
 
 //  Plan Name Change API
 //  Route還沒寫
-export const planNameChange = async (req, res) => {
-  const { planId, newName } = req.body; // 前端提供新的名稱
-  const { tripId } = req.params; // 由路徑參數提供 tripId
+export const updatePlanName = async (req, res) => {
+  const { name } = req.body; // 前端提供新的名稱
+  const { planId } = req.params;
 
   try {
     // 確認計畫是否存在，並且屬於指定的行程
-    const plan = await Plan.findOne({
-      where: {
-        id: planId,
-        tripId, // 確保該計畫屬於此行程
-      },
-    });
+    const plan = await Plan.findByPk(planId);
 
     if (!plan) {
       return res.status(404).json({
         status: "error",
-        message: "Plan not found or does not belong to the specified trip.",
+        message: "Plan not found",
       });
     }
 
     // 更新計畫名稱
-    plan.name = newName;
-    await plan.save();
+    plan.update({ name });
 
     return res.status(200).json({
       status: "success",
       message: "Plan name has been updated successfully.",
       data: {
         planId: plan.id,
-        newName: plan.name,
+        name: plan.name,
       },
     });
   } catch (error) {

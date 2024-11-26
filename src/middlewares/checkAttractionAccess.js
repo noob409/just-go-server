@@ -5,7 +5,7 @@ import Attraction from "../models/attraction.js";
 
 export const checkAttractionAccess = async (req, res, next) => {
   const userId = req.userId;
-  const { attractionId } = req.params;
+  const { tripId, planId, dayId, attractionId } = req.params;
 
   try {
     const attraction = await Attraction.findByPk(attractionId);
@@ -24,12 +24,24 @@ export const checkAttractionAccess = async (req, res, next) => {
         .json({ status: "error", message: "Day not found" });
     }
 
+    if (day.id !== dayId) {
+      return res
+        .status(403)
+        .json({ status: "error", message: "Permission denied" });
+    }
+
     const plan = await Plan.findByPk(day.planId);
 
     if (!plan) {
       return res
         .status(404)
         .json({ status: "error", message: "Plan not found" });
+    }
+
+    if (plan.id !== planId) {
+      return res
+        .status(403)
+        .json({ status: "error", message: "Permission denied" });
     }
 
     const trip = await Trip.findByPk(plan.tripId);
@@ -40,7 +52,7 @@ export const checkAttractionAccess = async (req, res, next) => {
         .json({ status: "error", message: "Trip not found" });
     }
 
-    if (trip.userId !== userId) {
+    if (trip.userId !== userId || trip.id !== tripId) {
       return res
         .status(403)
         .json({ status: "error", message: "Permission denied" });

@@ -4,7 +4,7 @@ import Day from "../models/day.js";
 
 export const checkDaysAccess = async (req, res, next) => {
   const userId = req.userId;
-  const { planId } = req.params;
+  const { tripId, planId } = req.params;
 
   try {
     const plan = await Plan.findByPk(planId);
@@ -23,7 +23,7 @@ export const checkDaysAccess = async (req, res, next) => {
         .json({ status: "error", message: "Trip not found" });
     }
 
-    if (trip.userId !== userId) {
+    if (trip.userId !== userId || tripId !== trip.id) {
       return res
         .status(403)
         .json({ status: "error", message: "Permission denied" });
@@ -40,7 +40,7 @@ export const checkDaysAccess = async (req, res, next) => {
 
 export const checkDayAccess = async (req, res, next) => {
   const userId = req.userId;
-  const { dayId } = req.params;
+  const { tripId, planId, dayId } = req.params;
 
   try {
     const day = await Day.findByPk(dayId);
@@ -59,6 +59,12 @@ export const checkDayAccess = async (req, res, next) => {
         .json({ status: "error", message: "Plan not found" });
     }
 
+    if (planId !== plan.id) {
+      return res
+        .status(403)
+        .json({ status: "error", message: "Permission denied" });
+    }
+
     const trip = await Trip.findByPk(plan.tripId);
 
     if (!trip) {
@@ -67,7 +73,7 @@ export const checkDayAccess = async (req, res, next) => {
         .json({ status: "error", message: "Trip not found" });
     }
 
-    if (trip.userId !== userId) {
+    if (trip.userId !== userId || tripId !== trip.id) {
       return res
         .status(403)
         .json({ status: "error", message: "Permission denied" });

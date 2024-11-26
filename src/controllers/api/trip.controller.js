@@ -3,268 +3,298 @@ import Trip from "../../models/trip.js";
 import TripLike from "../../models/trip_like.js";
 import User from "../../models/user.js";
 
-{/* 1. createTrip -> 要刪除new Attraction，且placeToPlan也要修改 - OK
+{
+  /* 1. createTrip -> 要刪除new Attraction，且placeToPlan也要修改 - OK
     2. getTrip -> editPermission如果是trip擁有者call，就會undefined - OK
     3. attraList -> 不要排序，要傳回nextAttractionId - OK
     4. All function的回傳值要大改
     5. routes要修改驗證邏輯
-    6. 要把跟編輯形成相關的FUNCTION拉出去 */}
+    6. 要把跟編輯形成相關的FUNCTION拉出去 */
+}
 
 //  首頁 - 熱門行程，目前以點讚數遞減傳回。
 //  檢查isPublic，如果是false則不用傳回
 //  2024/11/19檢查OK
 export const popularTrips = async (req, res) => {
-    let popularTrips = [];
-    try {
-        const userId = req.userId;
+  let popularTrips = [];
+  try {
+    const userId = req.userId;
 
-        const tripDataAll = await Trip.findAll({
-            where: {
-                isPublic: true, // 僅查詢公開行程
-            },
-            order: [["likeCount", "DESC"]],
-            include: [
-                {
-                    model: User, // 假設有 User 模型關聯
-                    attributes: ["username", "avatar"], // 提取用戶名與頭像
-                },
-                {
-                    model: TripLike, // 關聯 TripLike 表
-                    attributes: ["userId"], // 提取按讚的用戶 ID
-                },
-            ],
-        });
+    const tripDataAll = await Trip.findAll({
+      where: {
+        isPublic: true, // 僅查詢公開行程
+      },
+      order: [["likeCount", "DESC"]],
+      include: [
+        {
+          model: User, // 假設有 User 模型關聯
+          attributes: ["username", "avatar"], // 提取用戶名與頭像
+        },
+        {
+          model: TripLike, // 關聯 TripLike 表
+          attributes: ["userId"], // 提取按讚的用戶 ID
+        },
+      ],
+    });
 
-        popularTrips = tripDataAll.map(trip => {
-            // 計算天數
-            const departureDate = new Date(trip.departureDate);
-            const endDate = new Date(trip.endDate);
-            const timeDifference = endDate - departureDate; // 時間差（毫秒）
-            const dayDifference = Math.ceil(timeDifference / (1000 * 3600 * 24)) + 1; // 轉換為天數
+    popularTrips = tripDataAll.map((trip) => {
+      // 計算天數
+      const departureDate = new Date(trip.departureDate);
+      const endDate = new Date(trip.endDate);
+      const timeDifference = endDate - departureDate; // 時間差（毫秒）
+      const dayDifference = Math.ceil(timeDifference / (1000 * 3600 * 24)) + 1; // 轉換為天數
 
-            return {
-                tripInfo: {
-                    id: trip.id,
-                    userId: trip.userId,
-                    username: trip.User?.username || "Unknown", // 從關聯的 User 模型獲取
-                    avatar: trip.User?.avatar || "", // 從關聯的 User 模型獲取
-                    title: trip.tripName,
-                    image: trip.image,
-                    day: dayDifference,
-                    publishDay: trip.publicAt,
-                    labels: trip.label || [],
-                    like: trip.likeCount,
-                    isLike: trip.trip_likes.some(like => like.userId === userId), // 檢查當前用戶是否按讚
-                }
-            };
-        });
-        return res.status(200).json({ status: "success", data: popularTrips });
-    } catch (error) {
-        console.error(error);
-        return res.status(500).json({ status: "error", message: "Internal server error" });
-    }
-}
+      return {
+        id: trip.id,
+        userId: trip.userId,
+        username: trip.user.username || "Unknown", // 從關聯的 User 模型獲取
+        avatar: trip.user.avatar || "", // 從關聯的 User 模型獲取
+        title: trip.tripName,
+        image: trip.image,
+        day: dayDifference,
+        publishDay: trip.publicAt,
+        labels: trip.label || [],
+        like: trip.likeCount,
+        isLike: trip.trip_likes.some((like) => like.userId === userId), // 檢查當前用戶是否按讚
+      };
+    });
+    return res.status(200).json({ status: "success", data: popularTrips });
+  } catch (error) {
+    console.error(error);
+    return res
+      .status(500)
+      .json({ status: "error", message: "Internal server error" });
+  }
+};
 
 //  對行程點讚
 //  2024/11/19 OK
 export const favorTrip = async (req, res) => {
-    const userId = req.userId;
-    const tripId = req.params.id;
+  const userId = req.userId;
+  const tripId = req.params.id;
 
-    try {
-        const isTripExist = await Trip.findByPk(tripId);
-        if (!isTripExist) {
-            return res.status(404).json({ status: "success", message: "Trip Not Found" });
-        }
-
-        const alreadyFavor = await TripLike.findOne({ where: { userId: userId, tripId: tripId } });
-        if (alreadyFavor) {
-            //  user對trip取消按讚
-            //  Decrement the like count for the trip
-            const trip = await Trip.findByPk(tripId);
-            trip.likeCount -= 1;
-            await trip.save();
-
-            await alreadyFavor.destroy();
-            return res.status(200).json({ status: "success", isLike: false });
-        } else {
-            //  user對trip按讚
-            //  Increment the like count for the trip
-            const trip = await Trip.findByPk(tripId);
-            trip.likeCount += 1;
-            await trip.save();
-
-            await TripLike.create({
-                userId: userId,
-                tripId: tripId
-            });
-            return res.status(201).json({ status: "success", isLike: true });;  //  201 created code: successful response and resource created.
-        }
-    } catch (error) {
-        console.error(error);
-        return res.status(500).json({ status: "error", message: "Internal server error" });
+  try {
+    const isTripExist = await Trip.findByPk(tripId);
+    if (!isTripExist) {
+      return res
+        .status(404)
+        .json({ status: "success", message: "Trip Not Found" });
     }
-}
+
+    const alreadyFavor = await TripLike.findOne({
+      where: { userId: userId, tripId: tripId },
+    });
+    if (alreadyFavor) {
+      //  user對trip取消按讚
+      //  Decrement the like count for the trip
+      const trip = await Trip.findByPk(tripId);
+      trip.likeCount -= 1;
+      await trip.save();
+
+      await alreadyFavor.destroy();
+      return res.status(200).json({ status: "success", isLike: false });
+    } else {
+      //  user對trip按讚
+      //  Increment the like count for the trip
+      const trip = await Trip.findByPk(tripId);
+      trip.likeCount += 1;
+      await trip.save();
+
+      await TripLike.create({
+        userId: userId,
+        tripId: tripId,
+      });
+      return res.status(201).json({ status: "success", isLike: true }); //  201 created code: successful response and resource created.
+    }
+  } catch (error) {
+    console.error(error);
+    return res
+      .status(500)
+      .json({ status: "error", message: "Internal server error" });
+  }
+};
 
 //  刪除行程
 //  2024/11/19 OK
 export const deleteTrip = async (req, res) => {
-    const userId = req.userId;
-    const tripId = req.params.id;
+  const userId = req.userId;
+  const tripId = req.params.id;
 
-    try {
-        // const isTripExist = await Trip.findByPk(tripId);
+  try {
+    // const isTripExist = await Trip.findByPk(tripId);
 
-        // if (!isTripExist) {
-        //     // 行程不存在
-        //     return res.status(404).json({ status: "error", message: "Trip Not Found" });
-        // }
+    // if (!isTripExist) {
+    //     // 行程不存在
+    //     return res.status(404).json({ status: "error", message: "Trip Not Found" });
+    // }
 
-        // // 確認行程是否屬於當前使用者
-        // if (isTripExist.userId !== userId) {
-        //     // 使用者無權限刪除別人的行程
-        //     return res.status(403).json({ status: "error", message: "You are not allowing to delete this trip." });
-        // }
+    // // 確認行程是否屬於當前使用者
+    // if (isTripExist.userId !== userId) {
+    //     // 使用者無權限刪除別人的行程
+    //     return res.status(403).json({ status: "error", message: "You are not allowing to delete this trip." });
+    // }
 
-        // // Set the finalPlanId to null to remove foreign key reference
-        // await Trip.update(
-        //     { finalPlanId: null },
-        //     { where: { id: tripId } }
-        // );
+    // // Set the finalPlanId to null to remove foreign key reference
+    // await Trip.update(
+    //     { finalPlanId: null },
+    //     { where: { id: tripId } }
+    // );
 
-        // // 刪除與該行程相關的資料
-        // // 刪除與該行程相關的 TripShare 和 TripLike 記錄
-        // await TripShare.destroy({ where: { tripId: tripId } });
-        // await TripLike.destroy({ where: { tripId: tripId } });
+    // // 刪除與該行程相關的資料
+    // // 刪除與該行程相關的 TripShare 和 TripLike 記錄
+    // await TripShare.destroy({ where: { tripId: tripId } });
+    // await TripLike.destroy({ where: { tripId: tripId } });
 
-        // // 刪除與該行程相關的所有 Plan 及其相關的 Day 和 Attraction
-        // const plans = await Plan.findAll({ where: { tripId: tripId } });
+    // // 刪除與該行程相關的所有 Plan 及其相關的 Day 和 Attraction
+    // const plans = await Plan.findAll({ where: { tripId: tripId } });
 
-        // for (const plan of plans) {
-        //     const days = await Day.findAll({ where: { planId: plan.id } });
+    // for (const plan of plans) {
+    //     const days = await Day.findAll({ where: { planId: plan.id } });
 
-        //     // 刪除每個 Day 對應的 Attraction
-        //     for (const day of days) {
-        //         await Attraction.destroy({ where: { dayId: day.id } });
-        //     }
+    //     // 刪除每個 Day 對應的 Attraction
+    //     for (const day of days) {
+    //         await Attraction.destroy({ where: { dayId: day.id } });
+    //     }
 
-        //     // 刪除 Day
-        //     await Day.destroy({ where: { planId: plan.id } });
-        // }
+    //     // 刪除 Day
+    //     await Day.destroy({ where: { planId: plan.id } });
+    // }
 
-        // // 刪除 Plan
-        // await Plan.destroy({ where: { tripId: tripId } });
+    // // 刪除 Plan
+    // await Plan.destroy({ where: { tripId: tripId } });
 
-        // // 最後，刪除 Trip 本身
-        // await isTripExist.destroy();
+    // // 最後，刪除 Trip 本身
+    // await isTripExist.destroy();
 
-        // return res.status(200).json({ status: "success", message: "The trip and all related data have been deleted." });
-        const isTripExist = await Trip.findByPk(tripId);
+    // return res.status(200).json({ status: "success", message: "The trip and all related data have been deleted." });
+    const isTripExist = await Trip.findByPk(tripId);
 
-        if (!isTripExist) {
-            // 行程不存在
-            return res.status(404).json({ status: "error", message: "Trip Not Found" });
-        }
-
-        // 確認行程是否屬於當前使用者
-        if (isTripExist.userId !== userId) {
-            // 使用者無權限刪除別人的行程
-            return res.status(403).json({ status: "error", message: "You are not allowed to delete this trip." });
-        }
-
-        // 刪除 Trip 本身，並自動刪除相關的 TripShare, TripLike, Plan, Day, and Attraction
-        await isTripExist.destroy();
-
-        return res.status(200).json({ status: "success", message: "The trip and all related data have been deleted." });
-    } catch (error) {
-        console.error(error);
-        return res.status(500).json({ status: "error", message: "Internal server error" });
+    if (!isTripExist) {
+      // 行程不存在
+      return res
+        .status(404)
+        .json({ status: "error", message: "Trip Not Found" });
     }
-}
+
+    // 確認行程是否屬於當前使用者
+    if (isTripExist.userId !== userId) {
+      // 使用者無權限刪除別人的行程
+      return res.status(403).json({
+        status: "error",
+        message: "You are not allowed to delete this trip.",
+      });
+    }
+
+    // 刪除 Trip 本身，並自動刪除相關的 TripShare, TripLike, Plan, Day, and Attraction
+    await isTripExist.destroy();
+
+    return res.status(200).json({
+      status: "success",
+      message: "The trip and all related data have been deleted.",
+    });
+  } catch (error) {
+    console.error(error);
+    return res
+      .status(500)
+      .json({ status: "error", message: "Internal server error" });
+  }
+};
 
 //  景點收藏
 export const addPlaceCollection = async (req, res) => {
-    const userId = req.userId;
-    const { googlePlaceId } = req.body;
+  const userId = req.userId;
+  const { googlePlaceId } = req.body;
 
-    try {
-        // 檢查是否已經存在相同的收藏
-        const existingCollection = await Collection.findOne({
-            where: {
-                userId: userId,
-                googlePlaceId: googlePlaceId,
-            }
-        });
+  try {
+    // 檢查是否已經存在相同的收藏
+    const existingCollection = await Collection.findOne({
+      where: {
+        userId: userId,
+        googlePlaceId: googlePlaceId,
+      },
+    });
 
-        if (existingCollection) {
-            // 如果已存在，返回一個提示訊息或已存在的資料
-            return res.status(409).json({
-                status: "error",
-                message: "This place is already in your collection.",
-            });
-        };
-
-        // 如果不存在，則新增收藏
-        const addCollection = await Collection.create({
-            userId: userId,
-            googlePlaceId: googlePlaceId,
-        });
-        const collectionInfo = {
-            id: addCollection.id,
-            userId: addCollection.userId,
-            googlePlaceId: addCollection.googlePlaceId,
-        };
-        return res.status(201).json({ status: "success", data: collectionInfo });
-    } catch (error) {
-        console.log(error);
-        return res.status(500).json({ status: "error", message: "Internal server error" });
+    if (existingCollection) {
+      // 如果已存在，返回一個提示訊息或已存在的資料
+      return res.status(409).json({
+        status: "error",
+        message: "This place is already in your collection.",
+      });
     }
-}
+
+    // 如果不存在，則新增收藏
+    const addCollection = await Collection.create({
+      userId: userId,
+      googlePlaceId: googlePlaceId,
+    });
+    const collectionInfo = {
+      id: addCollection.id,
+      userId: addCollection.userId,
+      googlePlaceId: addCollection.googlePlaceId,
+    };
+    return res.status(201).json({ status: "success", data: collectionInfo });
+  } catch (error) {
+    console.log(error);
+    return res
+      .status(500)
+      .json({ status: "error", message: "Internal server error" });
+  }
+};
 
 //  景點刪除
 export const deletePlaceCollection = async (req, res) => {
-    const userId = req.userId;
-    const { googlePlaceId } = req.body;
+  const userId = req.userId;
+  const { googlePlaceId } = req.body;
 
-    try {
-        // 檢查是否已經存在相同的收藏
-        const existingCollection = await Collection.findOne({
-            where: {
-                userId: userId,
-                googlePlaceId: googlePlaceId,
-            }
-        });
-        if (existingCollection) {
-            await Collection.destroy({ where: { userId: userId, googlePlaceId: googlePlaceId } });
-            return res.status(200).json({ status: "success", message: "The Google Place had deleted." });
-        } else {
-            return res.status(404).json({ status: "error", message: "Not Found" });
-        }
-    } catch (error) {
-        console.log(error);
-        return res.status(500).json({ status: "error", message: "Internal server error" });
+  try {
+    // 檢查是否已經存在相同的收藏
+    const existingCollection = await Collection.findOne({
+      where: {
+        userId: userId,
+        googlePlaceId: googlePlaceId,
+      },
+    });
+    if (existingCollection) {
+      await Collection.destroy({
+        where: { userId: userId, googlePlaceId: googlePlaceId },
+      });
+      return res
+        .status(200)
+        .json({ status: "success", message: "The Google Place had deleted." });
+    } else {
+      return res.status(404).json({ status: "error", message: "Not Found" });
     }
-}
+  } catch (error) {
+    console.log(error);
+    return res
+      .status(500)
+      .json({ status: "error", message: "Internal server error" });
+  }
+};
 
 //  取得所有收藏景點
 export const getCollection = async (req, res) => {
-    const userId = req.userId;
+  const userId = req.userId;
 
-    try {
-        const collectionInfo = await Collection.findAll({ where: { userId: userId } });
+  try {
+    const collectionInfo = await Collection.findAll({
+      where: { userId: userId },
+    });
 
-        // Test 前端資料接收格式
-        let collections = collectionInfo.map(collect => ({
-            id: collect.id,
-            userId: collect.userId,
-            googlePlaceId: collect.googlePlaceId
-        }));
-        return res.status(200).json({ status: "success", data: collections });
-    } catch (error) {
-        console.log(error);
-        return res.status(500).json({ status: "error", message: "Internal server error" });
-    }
-}
+    // Test 前端資料接收格式
+    let collections = collectionInfo.map((collect) => ({
+      id: collect.id,
+      userId: collect.userId,
+      googlePlaceId: collect.googlePlaceId,
+    }));
+    return res.status(200).json({ status: "success", data: collections });
+  } catch (error) {
+    console.log(error);
+    return res
+      .status(500)
+      .json({ status: "error", message: "Internal server error" });
+  }
+};
 
 // /* searchTripById會需要行程是否公開、是否有共編權限，這些邏輯來判斷是否可以讓user查詢 */
 // //  根據Trip ID搜尋行程
@@ -479,7 +509,6 @@ export const getCollection = async (req, res) => {
 //         const planList = await Promise.all(trip.plans.map(async (plan) => {
 //             const sortedPlanDays = sortedDays.filter(day => day.planId === plan.id);
 //             console.log("Sorted Plan Days for Plan ID:", plan.id, sortedPlanDays);
-
 
 //             const dayList = await Promise.all(sortedPlanDays.map(async (day) => {
 //                 const attrList = await Attraction.findAll({

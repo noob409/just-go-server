@@ -92,7 +92,8 @@ export const createTrip = async (req, res) => {
           userId: newTrip.userId,
           title: newTrip.tripName,
           image: newTrip.image,
-          personalEditPermission: 1, // Assuming a default value; update as needed
+          description: newTrip.description,
+          editPermission: 1, // Assuming a default value; update as needed
           finalPlanId: newTrip.finalPlanId,
           departureDate: newTrip.departureDate,
           endDate: newTrip.endDate,
@@ -113,6 +114,63 @@ export const createTrip = async (req, res) => {
     });
   } catch (error) {
     console.log(error);
+    return res
+      .status(500)
+      .json({ status: "error", message: "Internal server error" });
+  }
+};
+
+export const publishTrip = async (req, res) => {
+  const tripId = req.params.id;
+  const userId = req.userId;
+  const { isPublic } = req.body;
+
+  try {
+    const trip = await Trip.findByPk(tripId);
+
+    if (!trip) {
+      return res
+        .status(404)
+        .json({ status: "error", message: "Trip not found" });
+    }
+
+    if (trip.userId !== userId) {
+      return res
+        .status(403)
+        .json({ status: "error", message: "Permission denied" });
+    }
+
+    // 更新行程的公開狀態
+    await trip.update({ isPublic: isPublic });
+
+    // 如果是公開行程，則更新公開時間
+    if (isPublic) {
+      await trip.update({ publicAt: new Date() });
+    }
+
+    return res.status(200).json({
+      status: "success",
+      data: {
+        tripInfo: {
+          id: trip.id,
+          userId: trip.userId,
+          title: trip.tripName,
+          image: trip.image,
+          description: trip.description,
+          editPermission: 1, // Assuming a default value; update as needed
+          finalPlanId: trip.finalPlanId,
+          departureDate: trip.departureDate,
+          endDate: trip.endDate,
+          labels: trip.label || [],
+          like: trip.likeCount || 0,
+          linkPermission: trip.linkPermission || false,
+          isPublic: trip.isPublic || false,
+          publishDay: trip.publicAt || null,
+        },
+      },
+    });
+  } catch (error) {
+    console.error(error);
     return res
       .status(500)
       .json({ status: "error", message: "Internal server error" });
@@ -294,7 +352,8 @@ export const getTrip = async (req, res) => {
           userId: trip.userId,
           title: trip.tripName,
           image: trip.image,
-          personalEditPermission: editPermission?.permission || 1,
+          description: trip.description,
+          editPermission: editPermission?.permission || 1,
           finalPlanId: trip.finalPlanId,
           departureDate: trip.departureDate,
           endDate: trip.endDate,
@@ -308,21 +367,25 @@ export const getTrip = async (req, res) => {
     });
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ status: "error", message: "Internal server error" });
+    return res
+      .status(500)
+      .json({ status: "error", message: "Internal server error" });
   }
-}
+};
 
 //  更新行程資訊 by figma
 export const updateTripInfo = async (req, res) => {
-  const { tripIntro, hashtags } = req.body;
+  const { name, description, labels } = req.body;
   const tripId = req.params.id;
   const userId = req.userId;
-  const tripAvatar = req.file;
+  const tripImage = req.file;
 
   try {
     const trip = await Trip.findByPk(tripId);
     if (!trip) {
-      return res.status(404).json({ status: "error", message: "Trip Not Foun" });
+      return res
+        .status(404)
+        .json({ status: "error", message: "Trip Not Foun" });
     }
 
     if (trip.userId !== userId) {
@@ -331,23 +394,24 @@ export const updateTripInfo = async (req, res) => {
 
     // 處理標籤 (hashtags)，確保是陣列形式
     let updatedHashtags = [];
-    if (Array.isArray(hashtags)) {
-      updatedHashtags = hashtags;
-    } else if (typeof hashtags === "string") {
-      updatedHashtags = hashtags.split(",").map((tag) => tag.trim());
+    if (Array.isArray(labels)) {
+      updatedHashtags = labels;
+    } else if (typeof labels === "string") {
+      updatedHashtags = labels.split(",").map((tag) => tag.trim());
     }
 
     // 處理封面圖片更新
-    let tripAvatarPath = trip.image; // 預設使用現有的圖片
-    if (tripAvatar) {
-      tripAvatarPath = `/uploads/trips/${tripAvatar.filename}`;
+    let tripImagePath = trip.image; // 預設使用現有的圖片
+    if (tripImage) {
+      tripImagePath = `/uploads/trips/${tripImage.filename}`;
     }
 
     // 更新行程資料
     await trip.update({
-      introduction: tripIntro || trip.introduction, // 如果提供了行程介紹，則更新；否則保留原有值
-      label: updatedHashtags.length > 0 ? updatedHashtags : trip.label, // 如果有標籤，則更新；否則保留原有值
-      image: tripAvatarPath, // 更新封面圖片路徑 (若無新圖片，則保留原有值)
+      name: name,
+      description: description || trip.description, // 如果提供了行程介紹，則更新；否則保留原有值
+      label: updatedHashtags ? updatedHashtags : trip.label, // 如果有標籤，則更新；否則保留原有值
+      image: tripImagePath, // 更新封面圖片路徑 (若無新圖片，則保留原有值)
     });
 
     // 回傳更新後的行程資訊
@@ -359,7 +423,8 @@ export const updateTripInfo = async (req, res) => {
           userId: trip.userId,
           title: trip.tripName,
           image: trip.image,
-          personalEditPermission: 1, // 假設預設值
+          description: trip.description,
+          editPermission: 1, // 假設預設值
           finalPlanId: trip.finalPlanId,
           departureDate: trip.departureDate,
           endDate: trip.endDate,
@@ -373,9 +438,11 @@ export const updateTripInfo = async (req, res) => {
     });
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ status: "error", message: "Internal server error" });
+    return res
+      .status(500)
+      .json({ status: "error", message: "Internal server error" });
   }
-}
+};
 
 //  把景點加入方案的邏輯，新增景點
 //  2024/11/19 OK

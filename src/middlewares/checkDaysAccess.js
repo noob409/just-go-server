@@ -85,7 +85,7 @@ export const checkDayAccess = async (req, res, next) => {
         .json({ status: "error", message: "Permission denied" });
     }
 
-    if (trip.userId !== userId && trip.isPublic) {
+    if (trip.userId !== userId && !trip.isPublic) {
       return res
         .status(403)
         .json({ status: "error", message: "Permission denied" });

@@ -7,7 +7,6 @@ import Day from "../../models/day.js";
 export const finalPlanChange = async (req, res) => {
   const { finalPlanId } = req.body;
   const { tripId } = req.params;
-  //  翊豪在此有寫tripId確認的middleware，故省略tripId check
 
   try {
     // 檢查該 Plan 是否屬於此 Trip

@@ -7,6 +7,7 @@ import {
   getPlans,
   createPlan,
   updatePlanName,
+  finalPlanChange,
 } from "../../controllers/api/plan.controller.js";
 import {
   checkPlansAccess,
@@ -22,6 +23,12 @@ PlanRouter.patch(
   validateParams(["planId"]),
   checkPlanAccess,
   updatePlanName
+);
+PlanRouter.patch(
+  "/:planId/finalplanidset",
+  validateParams(["planId"]),
+  checkPlanAccess,
+  finalPlanChange
 );
 
 export default PlanRouter;

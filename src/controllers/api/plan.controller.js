@@ -5,14 +5,14 @@ import Day from "../../models/day.js";
 //  FinalPlanId Change API
 //  Route還沒寫
 export const finalPlanChange = async (req, res) => {
-  const { finalPlanId } = req.body;
+  const { planId } = req.body;
   const { tripId } = req.params;
 
   try {
     // 檢查該 Plan 是否屬於此 Trip
     const plan = await Plan.findOne({
       where: {
-        id: finalPlanId,
+        id: planId,
         tripId: tripId, // 確保 finalPlanId 屬於這個 tripId
       },
     });
@@ -27,7 +27,7 @@ export const finalPlanChange = async (req, res) => {
 
     // 更新 Trip 的 finalPlanId
     const updatedTrip = await Trip.update(
-      { finalPlanId: finalPlanId },
+      { finalPlanId: planId },
       { where: { id: tripId } }
     );
 

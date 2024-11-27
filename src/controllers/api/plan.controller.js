@@ -3,7 +3,6 @@ import Plan from "../../models/plan.js";
 import Day from "../../models/day.js";
 
 //  FinalPlanId Change API
-//  Route還沒寫
 export const finalPlanChange = async (req, res) => {
   const { planId } = req.body;
   const { tripId } = req.params;

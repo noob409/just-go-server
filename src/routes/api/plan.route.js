@@ -25,7 +25,7 @@ PlanRouter.patch(
   updatePlanName
 );
 PlanRouter.patch(
-  "/:planId/finalplanidset",
+  "/:planId/final",
   validateParams(["planId"]),
   checkPlanAccess,
   finalPlanChange

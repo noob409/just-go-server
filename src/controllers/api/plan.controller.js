@@ -1,18 +1,17 @@
 import Trip from "../../models/trip.js";
 import Plan from "../../models/plan.js";
+import Day from "../../models/day.js";
 
 //  FinalPlanId Change API
-//  Route還沒寫
 export const finalPlanChange = async (req, res) => {
-  const { finalPlanId } = req.body;
+  const { planId } = req.body;
   const { tripId } = req.params;
-  //  翊豪在此有寫tripId確認的middleware，故省略tripId check
 
   try {
     // 檢查該 Plan 是否屬於此 Trip
     const plan = await Plan.findOne({
       where: {
-        id: finalPlanId,
+        id: planId,
         tripId: tripId, // 確保 finalPlanId 屬於這個 tripId
       },
     });
@@ -27,7 +26,7 @@ export const finalPlanChange = async (req, res) => {
 
     // 更新 Trip 的 finalPlanId
     const updatedTrip = await Trip.update(
-      { finalPlanId: finalPlanId },
+      { finalPlanId: planId },
       { where: { id: tripId } }
     );
 
@@ -52,7 +51,6 @@ export const finalPlanChange = async (req, res) => {
 };
 
 //  Plan Name Change API
-//  Route還沒寫
 export const updatePlanName = async (req, res) => {
   const { name } = req.body; // 前端提供新的名稱
   const { planId } = req.params;
@@ -113,4 +111,75 @@ export const getPlans = async (req, res) => {
   }
 };
 
-export const createPlan = async (req, res) => {};
+export const createPlan = async (req, res) => {
+  const { tripId } = req.params;
+
+  try {
+    const tripInfo = await Trip.findByPk(tripId);
+
+    let startDate = tripInfo.departureDate;
+    let endDate = tripInfo.endDate;
+
+    // Create the new plan
+    const newPlan = await Plan.create({
+      tripId,
+      name: null,
+    });
+
+    let prevDay = null;
+    let firstDay = null;
+    const currentDayList = [];
+    let currentDate = new Date(startDate);
+    const end = new Date(endDate);
+
+    // Generate the days for the plan
+    while (currentDate <= end) {
+      const newDay = await Day.create({ planId: newPlan.id });
+
+      // Link the first day to the plan's startDayId
+      if (!firstDay) {
+        firstDay = newDay;
+        newPlan.startDayId = newDay.id;
+        await newPlan.save();
+      }
+
+      // Link the previous day to the current day
+      if (prevDay) {
+        prevDay.nextDayId = newDay.id;
+        await prevDay.save();
+      }
+
+      // Collect day data for response
+      currentDayList.push({
+        id: newDay.id,
+        planId: newDay.planId,
+        startAttractionId: newDay.startAttractionId,
+        nextDayId: newDay.nextDayId,
+        createdAt: newDay.createdAt,
+        updatedAt: newDay.updatedAt,
+        attrList: [],
+      });
+
+      prevDay = newDay;
+
+      // Increment date by one day
+      currentDate.setDate(currentDate.getDate() + 1);
+    }
+
+    return res.status(201).json({
+      status: "success",
+      data: {
+        plan: {
+          id: newPlan.id,
+          name: newPlan.name,
+          days: currentDayList,
+        },
+      },
+    });
+  } catch (error) {
+    console.error(error);
+    return res
+      .status(500)
+      .json({ status: "error", message: "Internal server error" });
+  }
+};

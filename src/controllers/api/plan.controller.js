@@ -4,8 +4,7 @@ import Day from "../../models/day.js";
 
 //  FinalPlanId Change API
 export const finalPlanChange = async (req, res) => {
-  const { planId } = req.body;
-  const { tripId } = req.params;
+  const { tripId, planId } = req.params;
 
   try {
     // 檢查該 Plan 是否屬於此 Trip

@@ -3,6 +3,7 @@ import express, { json } from "express";
 import redoc from "redoc-express";
 import path from "path";
 import { fileURLToPath } from 'url';
+import morgan from 'morgan';
 
 import REDOC_CONFIG from "./config/redoc.js";
 import logger from "./logger.js";
@@ -11,6 +12,8 @@ import routes from "./routes/index.js";
 logger.info("[Init] useAPIService.");
 
 const app = express();
+
+app.use(morgan('common'));
 
 // 允许特定的前端域名
 const corsOptions = {

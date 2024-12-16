@@ -2,7 +2,7 @@ import cors from "cors";
 import express, { json } from "express";
 import redoc from "redoc-express";
 import path from "path";
-import { fileURLToPath } from 'url';
+import { fileURLToPath } from "url";
 
 import REDOC_CONFIG from "./config/redoc.js";
 import logger from "./logger.js";
@@ -14,8 +14,8 @@ const app = express();
 
 // 允许特定的前端域名
 const corsOptions = {
-  origin: 'http://localhost:5173', // 替换为您的前端应用的URL
-  optionsSuccessStatus: 200
+  origin: "https://just-go-web.onrender.com", // 替换为您的前端应用的URL
+  optionsSuccessStatus: 200,
 };
 
 // cors
@@ -27,7 +27,7 @@ app.use(json());
 // 設置靜態資源目錄
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-app.use("/uploads", express.static(path.join(__dirname, 'uploads')));
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 // api route
 app.use(routes);

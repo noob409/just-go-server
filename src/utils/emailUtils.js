@@ -16,7 +16,8 @@ oauth2Client.setCredentials({
 
 export const emailQueue = new Queue("email", {
   redis: {
-    url: process.env.REDIS_URL, // 使用環境變數中設定的 Redis URL
+    host: process.env.REDIS_HOST,
+    port: process.env.REDIS_PORT,
   },
 });
 

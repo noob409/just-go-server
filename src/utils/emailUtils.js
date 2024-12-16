@@ -52,9 +52,9 @@ const sendVerificationEmail = async (email, token) => {
       from: process.env.OAUTH_EMAIL,
       to: email,
       subject: "Just Go 帳號驗證",
-      text: `請點擊此連結以驗證您的信箱: \nhttp://localhost:5173/verify/${token}`,
+      text: `請點擊此連結以驗證您的信箱: \nhttps://just-go-web.onrender.com/verify/${token}`,
     };
-  
+
     await transporter.sendMail(mailOptions);
   } catch (error) {
     console.error(error);
